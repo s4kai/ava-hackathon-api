@@ -1,6 +1,6 @@
+import { PrismaService } from '@modules/shared';
 import { Injectable } from '@nestjs/common';
 import { Prisma, Student } from '@prisma/client';
-import { PrismaService } from 'src/modules/shared/prisma.service';
 import { createStudentDTO } from './dto';
 
 @Injectable()
