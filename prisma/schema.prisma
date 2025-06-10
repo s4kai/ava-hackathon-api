@@ -6,3 +6,260 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  name       String
+  status     String   @default("active")
+  enrollDate DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  classId Int?
+
+  class Class? @relation("ClassStudents", fields: [classId], references: [id])
+
+  quizAnswers           StudentQuizAnswer[]
+  StudentQuizResult     StudentQuizResult[]
+  StudentCustomMaterial StudentCustomMaterial[]
+
+  StudentSubjectPerformance StudentSubjectPerformance?
+
+  @@map("students")
+}
+
+model Teacher {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ClassTeacher ClassTeacher[]
+
+  @@map("teachers")
+}
+
+model Class {
+  id     Int    @id @default(autoincrement())
+  code   String
+  period String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students     Student[]      @relation("ClassStudents")
+  ClassTeacher ClassTeacher[]
+
+  @@map("classes")
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Lesson                    Lesson[]                    @relation("SubjectLessons")
+  StudentSubjectPerformance StudentSubjectPerformance[]
+
+  @@map("subjects")
+}
+
+model ClassTeacher {
+  id        Int @id @default(autoincrement())
+  classId   Int
+  teacherId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+
+  @@unique([classId, teacherId])
+  @@index([classId])
+  @@index([teacherId])
+  @@map("class_teachers")
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  title     String
+  date      DateTime @default(now())
+  type      String
+  subjectId Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject               Subject                 @relation("SubjectLessons", fields: [subjectId], references: [id])
+  lessonPlan            LessonPlan?             @relation("LessonToPlan")
+  lessonQuiz            LessonQuiz?             @relation("LessonToQuiz")
+  StudentCustomMaterial StudentCustomMaterial[] @relation("LessonCustomMaterial")
+
+  @@map("lessons")
+}
+
+model LessonPlan {
+  id       Int    @id @default(autoincrement())
+  title    String
+  content  String
+  lessonId Int    @unique
+  lesson   Lesson @relation("LessonToPlan", fields: [lessonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lesson_plans")
+}
+
+model LessonQuiz {
+  id    Int    @id @default(autoincrement())
+  title String
+
+  maxScore Float
+
+  lessonId Int    @unique
+  lesson   Lesson @relation("LessonToQuiz", fields: [lessonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  QuizQuestion      QuizQuestion[]
+  QuizAnswer        StudentQuizAnswer[]
+  StudentQuizResult StudentQuizResult[]
+
+  QuizAnalysis QuizAnalysis? @relation("QuizAnalysis")
+
+  @@map("lesson_quizzes")
+}
+
+model QuizQuestion {
+  id         Int    @id @default(autoincrement())
+  quizId     Int
+  question   String
+  options    String
+  answer     String
+  difficulty String
+  keywords   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quiz LessonQuiz @relation(fields: [quizId], references: [id])
+
+  @@map("quiz_questions")
+}
+
+model StudentQuizAnswer {
+  id        Int    @id @default(autoincrement())
+  studentId Int
+  quizId    Int
+  answer    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student    @relation(fields: [studentId], references: [id])
+  quiz    LessonQuiz @relation(fields: [quizId], references: [id])
+
+  @@map("student_quiz_answers")
+}
+
+model StudentQuizResult {
+  id        Int @id @default(autoincrement())
+  studentId Int
+  quizId    Int
+
+  score              Float
+  feedback           String?
+  timeTaken          Int
+  mostDifficultTopic String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student    @relation(fields: [studentId], references: [id])
+  quiz    LessonQuiz @relation(fields: [quizId], references: [id])
+
+  @@map("student_quiz_results")
+}
+
+model QuizAnalysis {
+  id     Int @id @default(autoincrement())
+  quizId Int @unique
+
+  totalAttempts Int
+  averageScore  Float
+  highestScore  Float
+  lowestScore   Float
+
+  averageTimeTaken   Int
+  mostDifficultTopic String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quiz LessonQuiz @relation("QuizAnalysis", fields: [quizId], references: [id])
+
+  @@map("quiz_analyses")
+}
+
+model StudentSubjectPerformance {
+  id        Int @id @default(autoincrement())
+  studentId Int @unique
+  subjectId Int
+
+  totalQuizzesTaken Int
+  averageScore      Float
+  highestScore      Float
+  lowestScore       Float
+
+  mostDifficultTopic String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@map("student_subject_performances")
+}
+
+model SubjectAnalysis {
+  id        Int @id @default(autoincrement())
+  subjectId Int @unique
+
+  totalLessons       Int
+  averageLessonScore Float
+  highestScore       Float
+  lowestScore        Float
+
+  mostDifficultLesson String?
+
+  lowStudentPerformanceAmount     Int
+  onTrackStudentPerformanceAmount Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subject_analyses")
+}
+
+model StudentCustomMaterial {
+  id        Int    @id @default(autoincrement())
+  studentId Int
+  title     String
+  content   String
+  lessonId  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  lesson  Lesson  @relation("LessonCustomMaterial", fields: [lessonId], references: [id])
+
+  @@map("student_custom_materials")
+}
