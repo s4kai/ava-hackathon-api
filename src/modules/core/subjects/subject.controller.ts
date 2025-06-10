@@ -1,8 +1,9 @@
 import { Controller } from '@nestjs/common';
+import { SubjectService } from './subject.service';
 
 @Controller('subjects')
 export class SubjectController {
-  public constructor(private readonly subjectService: any) {}
+  public constructor(private readonly subjectService: SubjectService) {}
 
   public getSubjects() {}
   public getSubjectById(id: string) {}
