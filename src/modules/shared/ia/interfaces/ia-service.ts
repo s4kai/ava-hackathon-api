@@ -5,6 +5,12 @@ export interface IntegrationIAService {
     prompt: string,
     context: string,
   ): Promise<string>;
+
+  getResponseWithFormat(
+    prompt: string,
+    context: string,
+    format: string,
+  ): Promise<string>;
 }
 
 export const IntegrationIAService = Symbol('IntegrationIAService');

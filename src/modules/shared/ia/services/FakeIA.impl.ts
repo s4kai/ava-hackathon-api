@@ -11,4 +11,12 @@ export class FakeIAService implements IntegrationIAService {
   ): Promise<string> {
     return `Response to prompt: ${prompt} with context: ${context}`;
   }
+
+  public async getResponseWithFormat(
+    prompt: string,
+    context: string,
+    format: string,
+  ): Promise<string> {
+    return `Response to prompt: ${prompt} with context: ${context} in format: ${format}`;
+  }
 }
