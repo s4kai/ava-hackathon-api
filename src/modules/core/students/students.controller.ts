@@ -1,5 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 
+import { Request } from 'express';
 import { createStudentDTO } from './dto';
 import { StudentsService } from './students.service';
 
@@ -7,8 +18,24 @@ import { StudentsService } from './students.service';
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
+  @HttpCode(HttpStatus.CREATED)
   @Post('/create')
   async createStudent(@Body() dto: createStudentDTO) {
     return this.studentsService.createStudent(dto);
+  }
+
+  @Put('/{id}/update')
+  async updateStudent(@Param('id') id: string, @Body() dto: createStudentDTO) {
+    return this.studentsService.updateStudent(Number(id), dto);
+  }
+
+  @Get('/')
+  async getAllStudents(@Req() req: Request) {
+    return this.studentsService.getAllStudents({});
+  }
+
+  @Get('/:id')
+  async getStudentById(@Param('id') id: string) {
+    return this.studentsService.getStudentById(Number(id));
   }
 }
