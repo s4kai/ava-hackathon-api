@@ -23,19 +23,18 @@ model Student {
   StudentQuizResult     StudentQuizResult[]
   StudentCustomMaterial StudentCustomMaterial[]
 
-  StudentSubjectPerformance StudentSubjectPerformance?
+  StudentSubjectPerformance StudentSubjectPerformance[]
 
   @@map("students")
 }
 
 model Teacher {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  ClassTeacher ClassTeacher[]
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  TeacherSubject TeacherSubject[]
 
   @@map("teachers")
 }
@@ -48,15 +47,30 @@ model Class {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  students     Student[]      @relation("ClassStudents")
-  ClassTeacher ClassTeacher[]
+  students Student[] @relation("ClassStudents")
+  Subject  Subject[]
 
   @@map("classes")
+}
+
+model TeacherSubject {
+  id        Int @id @default(autoincrement())
+  teacherId Int
+  subjectId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@map("teacher_subjects")
 }
 
 model Subject {
   id        Int      @id @default(autoincrement())
   code      String   @unique
+  classId   Int
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,24 +78,10 @@ model Subject {
   Lesson                    Lesson[]                    @relation("SubjectLessons")
   StudentSubjectPerformance StudentSubjectPerformance[]
 
+  Class          Class            @relation(fields: [classId], references: [id])
+  TeacherSubject TeacherSubject[]
+
   @@map("subjects")
-}
-
-model ClassTeacher {
-  id        Int @id @default(autoincrement())
-  classId   Int
-  teacherId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  class   Class   @relation(fields: [classId], references: [id])
-  teacher Teacher @relation(fields: [teacherId], references: [id])
-
-  @@unique([classId, teacherId])
-  @@index([classId])
-  @@index([teacherId])
-  @@map("class_teachers")
 }
 
 model Lesson {
@@ -209,7 +209,7 @@ model QuizAnalysis {
 
 model StudentSubjectPerformance {
   id        Int @id @default(autoincrement())
-  studentId Int @unique
+  studentId Int
   subjectId Int
 
   totalQuizzesTaken Int
@@ -222,8 +222,8 @@ model StudentSubjectPerformance {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  student Student @relation(fields: [studentId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
+  Student Student @relation(fields: [studentId], references: [id])
 
   @@map("student_subject_performances")
 }
