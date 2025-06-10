@@ -78,8 +78,9 @@ model Subject {
   Lesson                    Lesson[]                    @relation("SubjectLessons")
   StudentSubjectPerformance StudentSubjectPerformance[]
 
-  Class          Class            @relation(fields: [classId], references: [id])
-  TeacherSubject TeacherSubject[]
+  Class           Class            @relation(fields: [classId], references: [id])
+  TeacherSubject  TeacherSubject[]
+  SubjectAnalysis SubjectAnalysis?
 
   @@map("subjects")
 }
@@ -241,6 +242,8 @@ model SubjectAnalysis {
 
   lowStudentPerformanceAmount     Int
   onTrackStudentPerformanceAmount Int
+
+  Subject Subject @relation(fields: [subjectId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
