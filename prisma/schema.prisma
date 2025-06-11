@@ -36,6 +36,7 @@ model Teacher {
   @@map("teachers")
 }
 
+
 model TeacherSubject {
   id        Int @id @default(autoincrement())
   teacherId Int
