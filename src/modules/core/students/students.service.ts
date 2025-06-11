@@ -7,24 +7,24 @@ import { createStudentDTO } from './dto';
 export class StudentsService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  public async createStudent(dto: createStudentDTO): Promise<Student> {
+  public async createStudent(student: createStudentDTO): Promise<Student> {
     return this.prismaService.student.create({
       data: {
-        name: dto.name,
-        status: dto.status,
+        name: student.name,
+        status: student.status,
       },
     });
   }
 
   public async updateStudent(
     id: number,
-    dto: createStudentDTO,
+    student: createStudentDTO,
   ): Promise<Student> {
     return this.prismaService.student.update({
       where: { id },
       data: {
-        name: dto.name,
-        status: dto.status,
+        name: student.name,
+        status: student.status,
       },
     });
   }

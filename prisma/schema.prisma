@@ -17,8 +17,6 @@ model Student {
 
   classId Int?
 
-  class Class? @relation("ClassStudents", fields: [classId], references: [id])
-
   quizAnswers           StudentQuizAnswer[]
   StudentQuizResult     StudentQuizResult[]
   StudentCustomMaterial StudentCustomMaterial[]
@@ -38,21 +36,6 @@ model Teacher {
 
   @@map("teachers")
 }
-
-model Class {
-  id     Int    @id @default(autoincrement())
-  code   String
-  period String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  students Student[] @relation("ClassStudents")
-  Subject  Subject[]
-
-  @@map("classes")
-}
-
 model TeacherSubject {
   id        Int @id @default(autoincrement())
   teacherId Int
@@ -70,7 +53,6 @@ model TeacherSubject {
 model Subject {
   id        Int      @id @default(autoincrement())
   code      String   @unique
-  classId   Int
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,7 +60,6 @@ model Subject {
   Lesson                    Lesson[]                    @relation("SubjectLessons")
   StudentSubjectPerformance StudentSubjectPerformance[]
 
-  Class           Class            @relation(fields: [classId], references: [id])
   TeacherSubject  TeacherSubject[]
   SubjectAnalysis SubjectAnalysis?
 
