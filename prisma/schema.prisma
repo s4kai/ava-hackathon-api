@@ -20,6 +20,7 @@ model Student {
   StudentCustomMaterial StudentCustomMaterial[]
 
   StudentSubjectPerformance StudentSubjectPerformance[]
+  StudentSubject            StudentSubject[]
 
   @@map("students")
 }
@@ -61,8 +62,23 @@ model Subject {
 
   TeacherSubject  TeacherSubject[]
   SubjectAnalysis SubjectAnalysis?
+  StudentSubject  StudentSubject[]
 
   @@map("subjects")
+}
+
+model StudentSubject {
+  id        Int @id @default(autoincrement())
+  studentId Int
+  subjectId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@map("student_subjects")
 }
 
 model Lesson {
