@@ -15,13 +15,12 @@ model Student {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  classId Int?
-
   quizAnswers           StudentQuizAnswer[]
   StudentQuizResult     StudentQuizResult[]
   StudentCustomMaterial StudentCustomMaterial[]
 
   StudentSubjectPerformance StudentSubjectPerformance[]
+  StudentSubject            StudentSubject[]
 
   @@map("students")
 }
@@ -36,6 +35,8 @@ model Teacher {
 
   @@map("teachers")
 }
+
+
 model TeacherSubject {
   id        Int @id @default(autoincrement())
   teacherId Int
@@ -62,8 +63,23 @@ model Subject {
 
   TeacherSubject  TeacherSubject[]
   SubjectAnalysis SubjectAnalysis?
+  StudentSubject  StudentSubject[]
 
   @@map("subjects")
+}
+
+model StudentSubject {
+  id        Int @id @default(autoincrement())
+  studentId Int
+  subjectId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@map("student_subjects")
 }
 
 model Lesson {
