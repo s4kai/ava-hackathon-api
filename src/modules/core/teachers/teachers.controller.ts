@@ -8,13 +8,21 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { CreateTeacherDTO } from './dto';
+import { CreateTeacherDTO, TeacherDTO, UpdateTeacherDTO } from './dto';
 import { TeachersService } from './teachers.service';
 import { Teacher } from '@prisma/client';
 
 @Controller('teachers')
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
+
+  private toTeacherDTO(teacher: Teacher): TeacherDTO {
+    return {
+      id: teacher.id,
+      name: teacher.name,
+      email: teacher.email,
+    };
+  }
 
   // Criar um novo professor
   @HttpCode(HttpStatus.CREATED)
@@ -25,23 +33,26 @@ export class TeachersController {
 
   // Listar todos os professores
   @Get('/')
-  async getAllTeachers(): Promise<Teacher[]> {
-    const teachers = await this.teachersService.getAllTeachers({});
-    return teachers;
+  async getAllTeachers(): Promise<TeacherDTO[]> {
+    const result = await this.teachersService.getAllTeachers({});
+    return result.map((teacher) => this.toTeacherDTO(teacher));
   }
 
   // Listar os dados de um professor pelo ID
   @Get('/:id')
-  async getTeacherById(@Param('id') id: string): Promise<Teacher | null> {
-    const teacher = await this.teachersService.getTeacherById(Number(id));
-    return teacher;
+  async getTeacherById(@Param('id') id: string): Promise<TeacherDTO | null> {
+    const result = await this.teachersService.getTeacherById(Number(id));
+    if (!result) {
+      return null;
+    }
+    return this.toTeacherDTO(result);
   }
 
   // Atualizar os dados de um professor
   @Put('/:id/update')
   async updateTeacher(
     @Param('id') id: string,
-    @Body() teacher: CreateTeacherDTO,
+    @Body() teacher: UpdateTeacherDTO,
   ) {
     return this.teachersService.updateTeacher(Number(id), teacher);
   }
