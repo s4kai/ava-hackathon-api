@@ -1,7 +1,8 @@
 import { PrismaService } from '@modules/shared';
 import { Injectable } from '@nestjs/common';
-import { CreateTeacherDTO } from './dto/createTeacherDTO';
+import { CreateTeacherDTO } from './dto/request/createTeacherDTO';
 import { Prisma, Teacher, TeacherSubject } from '@prisma/client';
+import { UpdateTeacherDTO } from './dto/request/updateTeacherDTO';
 
 @Injectable()
 export class TeachersService {
@@ -18,7 +19,7 @@ export class TeachersService {
 
   public async updateTeacher(
     id: number,
-    teacher: CreateTeacherDTO,
+    teacher: UpdateTeacherDTO,
   ): Promise<Teacher> {
     return this.prismaService.teacher.update({
       where: { id },
