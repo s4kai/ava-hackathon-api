@@ -1,8 +1,7 @@
 import { PrismaService } from '@modules/shared';
 import { Injectable } from '@nestjs/common';
-import { CreateLessonDTO } from './dto/request/createLessonDTO';
 import { Prisma } from '@prisma/client';
-import { UpdateLessonDTO } from './dto';
+import { UpdateLessonDTO, CreateLessonDTO } from './dto';
 
 @Injectable()
 export class LessonService {
@@ -46,13 +45,7 @@ export class LessonService {
   public async updateLesson(id: number, lesson: UpdateLessonDTO) {
     return this.prismaService.lesson.update({
       where: { id },
-      data: {
-        title: lesson.title,
-        date: lesson.date,
-        type: lesson.type,
-        subjectId: lesson.subjectId,
-        content: lesson.content,
-      },
+      data: lesson,
     });
   }
 
