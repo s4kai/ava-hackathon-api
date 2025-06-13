@@ -7,7 +7,6 @@ import {
   Param,
   Post,
   Put,
-  Req,
 } from '@nestjs/common';
 
 import { Request } from 'express';
@@ -30,7 +29,7 @@ export class StudentsController {
   }
 
   @Get('/')
-  async getAllStudents(@Req() req: Request) {
+  async getAllStudents() {
     return this.studentsService.getAllStudents({});
   }
 
