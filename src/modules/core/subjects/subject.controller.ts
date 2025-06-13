@@ -9,12 +9,27 @@ import {
   Put,
 } from '@nestjs/common';
 import { SubjectService } from './subject.service';
-import { CreateSubjectDTO, SubjectDTO, UpdateSubjectDTO } from './dto';
-import { Subject } from '@prisma/client';
+import {
+  CreateSubjectDTO,
+  SubjectDTO,
+  UpdateSubjectDTO,
+  SetTeacherDTO,
+  SetStudentDTO,
+} from './dto';
+import { TeachersService } from '../teachers';
+import { StudentsService } from '../students';
+import { LessonService } from '../lessons';
+import { CreateLessonDTO, LessonDTO } from '../lessons/dto';
+import { Lesson, Subject } from '@prisma/client';
 
 @Controller('subjects')
 export class SubjectController {
-  public constructor(private readonly subjectService: SubjectService) {}
+  public constructor(
+    private readonly subjectService: SubjectService,
+    private readonly teacherService: TeachersService,
+    private readonly studentService: StudentsService,
+    private readonly lessonService: LessonService,
+  ) {}
 
   private toSubjectDTO(subject: Subject): SubjectDTO {
     return {
@@ -24,18 +39,35 @@ export class SubjectController {
     };
   }
 
-  @HttpCode(HttpStatus.CREATED)
-  @Post('/create')
-  public async createSubject(createSubjectDTO: CreateSubjectDTO) {
-    await this.subjectService.createSubject(createSubjectDTO);
+  private toLessonDTO(lesson: Lesson): LessonDTO {
+    return {
+      id: lesson.id,
+      title: lesson.title,
+      date: lesson.date,
+      type: lesson.type,
+      subjectId: lesson.subjectId,
+      content: lesson.content,
+    };
   }
 
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/create')
+  public async createSubject(
+    @Body() createSubjectDTO: CreateSubjectDTO,
+  ): Promise<SubjectDTO> {
+    const result = await this.subjectService.createSubject(createSubjectDTO);
+
+    return this.toSubjectDTO(result);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get('/')
   public async getAllSubjects(): Promise<SubjectDTO[]> {
     const result = await this.subjectService.getAllSubjects({});
     return result.map((subject) => this.toSubjectDTO(subject));
   }
 
+  @HttpCode(HttpStatus.OK)
   @Get('/:id')
   public async getSubjectById(
     @Param('id') id: string,
@@ -49,23 +81,71 @@ export class SubjectController {
     return this.toSubjectDTO(result);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Put('/:id/update')
-  async updateSubject(
+  public async updateSubject(
     @Param('id') id: string,
     @Body() subject: UpdateSubjectDTO,
   ) {
     return this.subjectService.updateSubject(Number(id), subject);
   }
 
-  // Criar endpoint para definir o professor em uma disciplina
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/{:id}/add-teacher')
+  public async setTeacherToSubject(
+    @Param('id') id: string,
+    @Body() body: SetTeacherDTO,
+  ) {
+    const { teacherId } = body;
+    const teacher = await this.teacherService.getTeacherById(Number(teacherId));
 
-  /*
-  public setTeacherToSubject(setTeaacherDTO: any) {
-    const { subjectId, teacherId } = setTeaacherDTO;
+    if (!teacher) {
+      return 'Teacher not found on database';
+    }
+
+    await this.subjectService.setTeacherToSubject(Number(id), teacher);
   }
 
-  public setClassToSubject(setClassDTO: any) {
-    const { subjectId, classId } = setClassDTO;
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/{:id}/add-student')
+  public async setStudentToSubject(
+    @Param('id') id: string,
+    @Body() body: SetStudentDTO,
+  ) {
+    const { studentId } = body;
+    const student = await this.studentService.getStudentById(Number(studentId));
+
+    if (!student) {
+      return 'Teacher not found on database';
+    }
+
+    await this.subjectService.setStudentToSubject(Number(id), student);
   }
-    */
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/{:id}/lessons')
+  public async getLessonsBySubject(
+    @Param('id') id: string,
+  ): Promise<LessonDTO[]> {
+    return await this.lessonService.getLessonsBySubjectId(Number(id));
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/{:id}/lessons/create')
+  public async createLesson(
+    @Param('id') id: string,
+    @Body() createLessonDTO: CreateLessonDTO,
+  ): Promise<LessonDTO | string> {
+    const subject = await this.subjectService.getSubjectById(Number(id));
+
+    if (!subject) {
+      return 'Subject not found';
+    }
+
+    createLessonDTO.subjectId = Number(subject.id);
+
+    const result = await this.lessonService.createLesson(createLessonDTO);
+
+    return this.toLessonDTO(result);
+  }
 }

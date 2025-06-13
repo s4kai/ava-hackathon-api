@@ -1,15 +1,6 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Param, Put, Body } from '@nestjs/common';
 import { LessonService } from './lesson.service';
-import { CreateLessonDTO, UpdateLessonDTO, LessonDTO } from './dto';
+import { UpdateLessonDTO, LessonDTO } from './dto';
 import { Lesson } from '@prisma/client';
 
 @Controller('lessons')
@@ -25,13 +16,6 @@ export class LessonController {
       subjectId: lesson.subjectId,
       content: lesson.content,
     };
-  }
-
-  // Criar uma nova aula
-  @HttpCode(HttpStatus.CREATED)
-  @Post('/create')
-  public async createLesson(createLessonDTO: CreateLessonDTO) {
-    await this.lessonService.createLesson(createLessonDTO);
   }
 
   // Listar todas as aulas
@@ -57,11 +41,5 @@ export class LessonController {
   @Put('/:id/update')
   async updateLesson(@Param('id') id: string, @Body() lesson: UpdateLessonDTO) {
     return this.lessonService.updateLesson(Number(id), lesson);
-  }
-
-  // Listar as aulas de uma disciplina
-  @Get('/subject/:subjectId')
-  public async getLessonsBySubject(@Param('subjectId') subjectId: string) {
-    return this.lessonService.getLessonsBySubjectId(Number(subjectId));
   }
 }

@@ -11,7 +11,7 @@ export class LessonService {
     return this.prismaService.lesson.create({
       data: {
         title: createLessonDTO.title,
-        date: createLessonDTO.date,
+        date: new Date(createLessonDTO.date),
         type: createLessonDTO.type,
         subjectId: createLessonDTO.subjectId,
         content: createLessonDTO.content,

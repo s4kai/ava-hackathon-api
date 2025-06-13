@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateLessonDTO {
   @IsNotEmpty()
@@ -6,15 +6,15 @@ export class CreateLessonDTO {
   readonly title: string;
 
   @IsNotEmpty()
-  @IsDate()
-  readonly date: Date;
+  @IsString()
+  readonly date: string;
 
   @IsNotEmpty()
   @IsString()
   readonly type: string;
 
   @IsNotEmpty()
-  readonly subjectId: number;
+  subjectId: number;
 
   @IsNotEmpty()
   @IsString()

@@ -1,0 +1,17 @@
+meta {
+  name: Set Teacher to Subject
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/subjects/:id/add-teacher
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "teacherId": "1"
+  }
+}
