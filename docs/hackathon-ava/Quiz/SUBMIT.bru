@@ -1,0 +1,24 @@
+meta {
+  name: SUBMIT
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/quizzes/submit
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "quizId": 1,
+    "studentId": 1,
+    "answers": [
+      { "questionId": 1, "answer": 1 },
+      { "questionId": 2, "answer": 1 },
+      { "questionId": 3, "answer": 1 },
+      { "questionId": 4, "answer": 1 }
+    ]
+  }
+}

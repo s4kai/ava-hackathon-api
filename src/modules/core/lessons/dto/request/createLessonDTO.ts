@@ -13,7 +13,6 @@ export class CreateLessonDTO {
   @IsString()
   readonly type: string;
 
-  @IsNotEmpty()
   subjectId: number;
 
   @IsNotEmpty()

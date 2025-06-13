@@ -1,0 +1,79 @@
+meta {
+  name: Get
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/quizzes/create
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Basic Math Quiz",
+    "lessonId": 1,
+    "description": "A simple quiz to test basic math skills.",
+    "timeLimit": 15,
+    "questions": [
+      {
+        "question": "What is 2 + 2?",
+        "options": ["3", "4", "5", "6"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "2 + 2 equals 4."
+      },
+      {
+        "question": "What is 10 - 7?",
+        "options": ["2", "3", "4", "5"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "10 - 7 equals 3."
+      },
+      {
+        "question": "What is 3 x 3?",
+        "options": ["6", "9", "12", "15"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "3 multiplied by 3 is 9."
+      },
+      {
+        "question": "What is 12 divided by 4?",
+        "options": ["2", "3", "4", "5"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "12 divided by 4 equals 3."
+      },
+      {
+        "question": "What is the square root of 16?",
+        "options": ["2", "4", "6", "8"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "The square root of 16 is 4."
+      },
+      {
+        "question": "What is 7 + 6?",
+        "options": ["12", "13", "14", "15"],
+        "correctAnswer": 1,
+        "type": "multiple-choice",
+        "explanation": "7 + 6 equals 13."
+      },
+      {
+        "question": "What is 5 x 0?",
+        "options": ["0", "1", "5", "10"],
+        "correctAnswer": 0,
+        "type": "multiple-choice",
+        "explanation": "Any number multiplied by 0 is 0."
+      },
+      {
+        "question": "What is 100 - 25?",
+        "options": ["75", "85", "95", "100"],
+        "correctAnswer": 0,
+        "type": "multiple-choice",
+        "explanation": "100 minus 25 is 75."
+      }
+    ]
+  }
+  
+}

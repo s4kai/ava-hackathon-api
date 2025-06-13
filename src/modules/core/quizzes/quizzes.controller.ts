@@ -1,26 +1,46 @@
-import { Controller } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
+import { CreateQuizDTO } from './dto/request/createQuizDTO';
+import { SubmitQuizDTO } from './dto/request/submitQuizDTO';
 import { QuizService } from './quizzes.service';
 
 @Controller('quizzes')
 export class QuizController {
   public constructor(private readonly quizService: QuizService) {}
 
-  public getQuizzesBySubject(subjectId: string) {}
-  public getQuizzesByLesson(lessonId: string) {}
-  public getQuizById(id: string) {}
+  @Get('/{:id}')
+  public getQuizById(@Param('id') id: string) {
+    return this.quizService.getQuizById(Number(id));
+  }
 
-  public createQuiz(quizDTO: any) {}
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/create')
+  public createQuiz(@Body() quizDTO: CreateQuizDTO) {
+    return this.quizService.createQuiz(quizDTO);
+  }
 
+  @Get('/subject/{:subjectId}')
   public genarateQuizQuestionsIA(IAQuestionsDTO: any) {
     const { lessonId } = IAQuestionsDTO;
+
+    return this.quizService.generateQuestionsIA(lessonId);
   }
 
-  public processQuizSubmission(submissionDTO: any) {
-    const { quizId, answers, studentId } = submissionDTO;
+  @Post('/submit')
+  public processQuizSubmission(@Body() submissionDTO: SubmitQuizDTO) {
+    return this.quizService.processQuizSubmission(submissionDTO);
   }
 
-  public getQuizResults(quizResultDTO: any) {
-    const { quizId, studentId } = quizResultDTO;
+  @Post('/{:id}/results')
+  public getQuizResults(@Param(':id') id, @Body() quizResultDTO: any) {
+    return this.quizService.getQuizResult(quizResultDTO.studentId, Number(id));
   }
 
   public getQuizAnalytics(quizAnalyticsDTO: any) {
