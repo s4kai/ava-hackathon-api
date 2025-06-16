@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Put, Body } from '@nestjs/common';
-import { LessonService } from './lesson.service';
-import { UpdateLessonDTO, LessonDTO } from './dto';
+import { Body, Controller, Get, Param, Put } from '@nestjs/common';
 import { Lesson } from '@prisma/client';
+import { LessonDTO, UpdateLessonDTO } from './dto';
+import { LessonService } from './lesson.service';
 
 @Controller('lessons')
 export class LessonController {

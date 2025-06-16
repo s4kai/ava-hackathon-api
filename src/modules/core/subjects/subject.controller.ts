@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,19 +9,19 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { SubjectService } from './subject.service';
-import {
-  CreateSubjectDTO,
-  SubjectDTO,
-  UpdateSubjectDTO,
-  SetTeacherDTO,
-  SetStudentDTO,
-} from './dto';
-import { TeachersService } from '../teachers';
-import { StudentsService } from '../students';
+import { Lesson, Subject } from '@prisma/client';
 import { LessonService } from '../lessons';
 import { CreateLessonDTO, LessonDTO } from '../lessons/dto';
-import { Lesson, Subject } from '@prisma/client';
+import { StudentsService } from '../students';
+import { TeachersService } from '../teachers';
+import {
+  CreateSubjectDTO,
+  SetStudentDTO,
+  SetTeacherDTO,
+  SubjectDTO,
+  UpdateSubjectDTO,
+} from './dto';
+import { SubjectService } from './subject.service';
 
 @Controller('subjects')
 export class SubjectController {
@@ -96,6 +97,10 @@ export class SubjectController {
     @Param('id') id: string,
     @Body() body: SetTeacherDTO,
   ) {
+    if (!id) {
+      throw new BadRequestException('Subject ID is required');
+    }
+
     const { teacherId } = body;
     const teacher = await this.teacherService.getTeacherById(Number(teacherId));
 

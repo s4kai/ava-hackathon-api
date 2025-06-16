@@ -36,7 +36,6 @@ model Teacher {
   @@map("teachers")
 }
 
-
 model TeacherSubject {
   id        Int @id @default(autoincrement())
   teacherId Int
@@ -117,7 +116,10 @@ model LessonQuiz {
   id    Int    @id @default(autoincrement())
   title String
 
-  maxScore Float
+  maxScore  Float
+  timeLimit Int
+
+  description String?
 
   lessonId Int    @unique
   lesson   Lesson @relation("LessonToQuiz", fields: [lessonId], references: [id])
@@ -135,13 +137,13 @@ model LessonQuiz {
 }
 
 model QuizQuestion {
-  id         Int    @id @default(autoincrement())
-  quizId     Int
-  question   String
-  options    String
-  answer     String
-  difficulty String
-  keywords   String
+  id          Int     @id @default(autoincrement())
+  quizId      Int
+  question    String
+  options     String
+  answer      Int
+  type        String
+  explanation String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,7 +1,7 @@
 import { PrismaService } from '@modules/shared';
-import { Injectable } from '@nestjs/common';
-import { CreateTeacherDTO } from './dto/request/createTeacherDTO';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, Teacher, TeacherSubject } from '@prisma/client';
+import { CreateTeacherDTO } from './dto/request/createTeacherDTO';
 import { UpdateTeacherDTO } from './dto/request/updateTeacherDTO';
 
 @Injectable()
@@ -9,6 +9,16 @@ export class TeachersService {
   public constructor(private readonly prismaService: PrismaService) {}
 
   public async createTeacher(teacher: CreateTeacherDTO): Promise<Teacher> {
+    const existingTeacher = await this.prismaService.teacher.findUnique({
+      where: { email: teacher.email },
+    });
+
+    if (existingTeacher) {
+      throw new BadRequestException(
+        `Teacher with email ${teacher.email} already exists.`,
+      );
+    }
+
     return this.prismaService.teacher.create({
       data: {
         name: teacher.name,

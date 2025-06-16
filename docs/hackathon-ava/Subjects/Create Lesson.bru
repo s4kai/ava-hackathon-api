@@ -1,0 +1,26 @@
+meta {
+  name: Create Lesson
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/subjects/:id/lessons/create
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "title": "Introdução à Fotossíntese",
+    "date": "2025-06-14",
+    "type": "Teórica",
+    "subjectId": 1,
+    "content": "Nesta aula, vamos estudar os processos fundamentais da fotossíntese em plantas verdes."
+  }
+  
+}
