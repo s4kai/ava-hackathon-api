@@ -33,12 +33,18 @@ export class QuizService {
   }
 
   public async getQuizById(quizId: number) {
-    return await this.prismaService.lessonQuiz.findUnique({
+    const quiz = await this.prismaService.lessonQuiz.findUnique({
       where: { id: quizId },
       include: {
         QuizQuestion: true,
       },
     });
+
+    if (!quiz) {
+      throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
+    }
+
+    return quiz;
   }
 
   public async createQuiz(quizDTO: CreateQuizDTO) {
@@ -222,5 +228,76 @@ export class QuizService {
     });
 
     return response;
+  }
+
+  public async getQuizAnalytics(quizId: number) {
+    const quiz = await this.prismaService.lessonQuiz.findUnique({
+      where: { id: quizId },
+      include: {
+        QuizQuestion: true,
+        StudentQuizResult: {
+          include: {
+            student: true,
+          },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
+    }
+
+    const totalSubmissions = quiz.StudentQuizResult.length;
+
+    const totalTimeTaken = quiz.StudentQuizResult.reduce(
+      (sum, result) => sum + result.timeTaken,
+      0,
+    );
+
+    const totalScore = quiz.StudentQuizResult.reduce(
+      (sum, result) => sum + result.score,
+      0,
+    );
+
+    const averageTimeTaken =
+      totalSubmissions > 0 ? totalTimeTaken / totalSubmissions : 0;
+
+    const averageScore =
+      totalSubmissions > 0 ? totalScore / totalSubmissions : 0;
+
+    const percentageScore = (averageScore / quiz.maxScore) * 100;
+
+    const highestScore = Math.max(
+      ...quiz.StudentQuizResult.map((result) => result.score),
+    );
+
+    const lowestScore = Math.min(
+      ...quiz.StudentQuizResult.map((result) => result.score),
+    );
+
+    if (isNaN(percentageScore)) {
+      throw new BadRequestException(
+        `Unable to calculate percentage score for quiz ID ${quizId}.`,
+      );
+    }
+
+    await this.prismaService.quizAnalysis.create({
+      data: {
+        quizId: quiz.id,
+        totalAttempts: totalSubmissions,
+        averageTimeTaken,
+        averageScore,
+        highestScore,
+        lowestScore,
+      },
+    });
+
+    return {
+      quizId: quiz.id,
+      title: quiz.title,
+      totalSubmissions,
+      averageScore,
+      percentageScore,
+    };
   }
 }

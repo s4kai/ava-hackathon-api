@@ -8,9 +8,9 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { Teacher } from '@prisma/client';
 import { CreateTeacherDTO, TeacherDTO, UpdateTeacherDTO } from './dto';
 import { TeachersService } from './teachers.service';
-import { Teacher } from '@prisma/client';
 
 @Controller('teachers')
 export class TeachersController {
@@ -28,7 +28,7 @@ export class TeachersController {
   @HttpCode(HttpStatus.CREATED)
   @Post('/create')
   async createTeacher(@Body() teacher: CreateTeacherDTO) {
-    await this.teachersService.createTeacher(teacher);
+    return await this.teachersService.createTeacher(teacher);
   }
 
   // Listar todos os professores

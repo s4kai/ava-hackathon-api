@@ -26,11 +26,9 @@ export class QuizController {
     return this.quizService.createQuiz(quizDTO);
   }
 
-  @Get('/subject/{:subjectId}')
-  public genarateQuizQuestionsIA(IAQuestionsDTO: any) {
-    const { lessonId } = IAQuestionsDTO;
-
-    return this.quizService.generateQuestionsIA(lessonId);
+  @Get('/generate-questions/{:lessonId}')
+  public genarateQuizQuestionsIA(@Param('lessonId') lessonId: string) {
+    return this.quizService.generateQuestionsIA(Number(lessonId));
   }
 
   @Post('/submit')
@@ -43,18 +41,22 @@ export class QuizController {
     return this.quizService.getQuizResult(quizResultDTO.studentId, Number(id));
   }
 
-  public getQuizAnalytics(quizAnalyticsDTO: any) {
-    const { quizId, subjectId } = quizAnalyticsDTO;
+  @Get('/analyse/quiz/{:quizId}')
+  public getQuizAnalytics(@Param('quizId') quizId: string) {
+    return this.quizService.getQuizAnalytics(Number(quizId));
   }
 
+  @Get('/analyse/student/{:studentId}/quiz/{:quizId}')
   public getStudentQuizAnalytics(studentQuizAnalyticsDTO: any) {
     const { studentId, quizId } = studentQuizAnalyticsDTO;
   }
 
+  @Get('/analyse/subject/{:subjectId}')
   public getQuizPerformanceBySubject(quizPerformanceDTO: any) {
     const { subjectId } = quizPerformanceDTO;
   }
 
+  @Get('/analyse/student/{:studentId}/subject/{:subjectId}')
   public getStudentSubjectPerformance(studentPerformanceDTO: any) {
     const { studentId, subjectId } = studentPerformanceDTO;
   }
