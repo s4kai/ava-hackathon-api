@@ -1,6 +1,6 @@
 import { PrismaService } from '@modules/shared';
-import { Injectable } from '@nestjs/common';
-import { Prisma, Student } from '@prisma/client';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma, Student, StudentCustomMaterial } from '@prisma/client';
 import { createStudentDTO } from './dto';
 
 @Injectable()
@@ -51,5 +51,22 @@ export class StudentsService {
     return this.prismaService.student.findUnique({
       where: { id },
     });
+  }
+
+  public async getAllStudentCustomMaterials(
+    id: number,
+  ): Promise<StudentCustomMaterial[] | null> {
+    const customMaterials =
+      await this.prismaService.studentCustomMaterial.findMany({
+        where: { id },
+      });
+
+    if (!customMaterials) {
+      throw new BadRequestException(
+        `Student with this ID ${id} does not exists`,
+      );
+    }
+
+    return customMaterials;
   }
 }

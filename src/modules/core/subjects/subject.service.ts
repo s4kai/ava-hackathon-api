@@ -27,6 +27,7 @@ export class SubjectService {
       cursor,
       where,
       orderBy,
+      include: { Lesson: true, TeacherSubject: { include: { teacher: true } } },
     });
   }
 
@@ -63,6 +64,12 @@ export class SubjectService {
           create: { studentId: student.id },
         },
       },
+    });
+  }
+
+  public async getSubjectsByStudentId(id: number) {
+    return this.prismaService.subject.findMany({
+      where: { StudentSubject: { some: { studentId: id } } },
     });
   }
 }

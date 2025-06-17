@@ -21,6 +21,12 @@ export class QuizService {
       select: { id: true },
     });
 
+    if (!lessons) {
+      throw new BadRequestException(
+        `Lessons with this Subject ID ${subjectId} does not exists`,
+      );
+    }
+
     return await this.prismaService.lessonQuiz.findMany({
       where: {
         lesson: {

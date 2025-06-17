@@ -153,4 +153,10 @@ export class SubjectController {
 
     return this.toLessonDTO(result);
   }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Get('/student/{:id}/subjects')
+  public async getSubjectsByStudentId(@Param('id') id: string) {
+    return this.subjectService.getSubjectsByStudentId(Number(id));
+  }
 }

@@ -1,5 +1,5 @@
 import { PrismaService } from '@modules/shared';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { UpdateLessonDTO, CreateLessonDTO } from './dto';
 
@@ -37,9 +37,15 @@ export class LessonService {
   }
 
   public async getLessonById(id: number) {
-    return this.prismaService.lesson.findUnique({
+    const lesson = await this.prismaService.lesson.findUnique({
       where: { id },
     });
+
+    if (!lesson) {
+      throw new BadRequestException(`Lesson with this ID ${id} not found`);
+    }
+
+    return lesson;
   }
 
   public async updateLesson(id: number, lesson: UpdateLessonDTO) {
@@ -50,8 +56,16 @@ export class LessonService {
   }
 
   public async getLessonsBySubjectId(subjectId: number) {
-    return this.prismaService.lesson.findMany({
+    const lessons = await this.prismaService.lesson.findMany({
       where: { subjectId },
     });
+
+    if (!lessons) {
+      throw new BadRequestException(
+        `Lessons with this Subject ID ${subjectId} not found`,
+      );
+    }
+
+    return lessons;
   }
 }
