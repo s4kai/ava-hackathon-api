@@ -1,7 +1,7 @@
 import { PrismaService } from '@modules/shared';
 import { Injectable } from '@nestjs/common';
-import { CreateSubjectDTO, UpdateSubjectDTO } from './dto';
 import { Prisma, Student, Teacher } from '@prisma/client';
+import { CreateSubjectDTO, UpdateSubjectDTO } from './dto';
 
 @Injectable()
 export class SubjectService {
@@ -34,7 +34,11 @@ export class SubjectService {
   public async getSubjectById(id: number) {
     return this.prismaService.subject.findUnique({
       where: { id },
-      include: { Lesson: true, TeacherSubject: { include: { teacher: true } } },
+      include: {
+        Lesson: true,
+        TeacherSubject: { include: { teacher: true } },
+        StudentSubject: { include: { student: true } },
+      },
     });
   }
 
@@ -70,6 +74,7 @@ export class SubjectService {
   public async getSubjectsByStudentId(id: number) {
     return this.prismaService.subject.findMany({
       where: { StudentSubject: { some: { studentId: id } } },
+      include: { Lesson: true, TeacherSubject: { include: { teacher: true } } },
     });
   }
 }

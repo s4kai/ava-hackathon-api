@@ -70,16 +70,25 @@ export class SubjectController {
 
   @HttpCode(HttpStatus.OK)
   @Get('/:id')
-  public async getSubjectById(
-    @Param('id') id: string,
-  ): Promise<SubjectDTO | null> {
+  public async getSubjectById(@Param('id') id: string) {
     const result = await this.subjectService.getSubjectById(Number(id));
 
     if (!result) {
       return null;
     }
-
-    return this.toSubjectDTO(result);
+    return {
+      ...this.toSubjectDTO(result),
+      lessons: result.Lesson.map((lesson) => this.toLessonDTO(lesson)),
+      teachers: result.TeacherSubject.map((teacherSubject) => ({
+        id: teacherSubject.teacher.id,
+        name: teacherSubject.teacher.name,
+        email: teacherSubject.teacher.email,
+      })),
+      students: result.StudentSubject.map((studentSubject) => ({
+        id: studentSubject.student.id,
+        name: studentSubject.student.name,
+      })),
+    };
   }
 
   @HttpCode(HttpStatus.OK)
@@ -155,8 +164,20 @@ export class SubjectController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Get('/student/{:id}/subjects')
+  @Get('/student/{:id}')
   public async getSubjectsByStudentId(@Param('id') id: string) {
-    return this.subjectService.getSubjectsByStudentId(Number(id));
+    const data = this.subjectService.getSubjectsByStudentId(Number(id));
+
+    return (await data).map((subject) => {
+      return {
+        ...this.toSubjectDTO(subject),
+        lessons: subject.Lesson.map((lesson) => this.toLessonDTO(lesson)),
+        teachers: subject.TeacherSubject.map((teacherSubject) => ({
+          id: teacherSubject.teacher.id,
+          name: teacherSubject.teacher.name,
+          email: teacherSubject.teacher.email,
+        })),
+      };
+    });
   }
 }

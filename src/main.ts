@@ -11,6 +11,12 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe());
+
+  app.enableCors({
+    origin: '*', // Adjust this to your needs
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept',
+  });
   await app.listen(config.port);
 }
 bootstrap();
