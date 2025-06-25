@@ -1,11 +1,11 @@
 meta {
   name: Analyse Quiz
   type: http
-  seq: 4
+  seq: 5
 }
 
 get {
-  url: {{base_url}}/quizzes/:id
+  url: {{base_url}}/quizzes/:id/analysis
   body: json
   auth: inherit
 }

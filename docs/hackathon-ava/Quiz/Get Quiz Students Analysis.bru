@@ -1,0 +1,21 @@
+meta {
+  name: Get Quiz Students Analysis
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base_url}}/subjects/:id/students-quiz-analytics
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "studentId": 1
+  }
+}

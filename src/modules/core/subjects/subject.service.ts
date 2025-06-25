@@ -77,4 +77,15 @@ export class SubjectService {
       include: { Lesson: true, TeacherSubject: { include: { teacher: true } } },
     });
   }
+
+  public async getSubjectsByTeacherId(id: number) {
+    const teacherSubjects = await this.prismaService.subject.findMany({
+      where: { TeacherSubject: { some: { teacherId: id } } },
+      include: {
+        _count: true,
+      },
+    });
+
+    return teacherSubjects;
+  }
 }

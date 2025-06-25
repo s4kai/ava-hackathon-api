@@ -12,6 +12,7 @@ import {
 import { Lesson, Subject } from '@prisma/client';
 import { LessonService } from '../lessons';
 import { CreateLessonDTO, LessonDTO } from '../lessons/dto';
+import { QuizService } from '../quizzes';
 import { StudentsService } from '../students';
 import { TeachersService } from '../teachers';
 import {
@@ -21,6 +22,7 @@ import {
   SubjectDTO,
   UpdateSubjectDTO,
 } from './dto';
+import { StudentQuizDTO } from './dto/request/sudentQuizDTO';
 import { SubjectService } from './subject.service';
 
 @Controller('subjects')
@@ -30,6 +32,7 @@ export class SubjectController {
     private readonly teacherService: TeachersService,
     private readonly studentService: StudentsService,
     private readonly lessonService: LessonService,
+    private readonly quizService: QuizService,
   ) {}
 
   private toSubjectDTO(subject: Subject): SubjectDTO {
@@ -89,6 +92,12 @@ export class SubjectController {
         name: studentSubject.student.name,
       })),
     };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/:id/quiz-analysis')
+  public async getSubjectQuizAnalysis(@Param('id') id: string) {
+    return await this.quizService.getQuizAnalyticsBySubject(Number(id));
   }
 
   @HttpCode(HttpStatus.OK)
@@ -163,12 +172,12 @@ export class SubjectController {
     return this.toLessonDTO(result);
   }
 
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Get('/student/{:id}')
   public async getSubjectsByStudentId(@Param('id') id: string) {
-    const data = this.subjectService.getSubjectsByStudentId(Number(id));
+    const data = await this.subjectService.getSubjectsByStudentId(Number(id));
 
-    return (await data).map((subject) => {
+    return await data.map((subject) => {
       return {
         ...this.toSubjectDTO(subject),
         lessons: subject.Lesson.map((lesson) => this.toLessonDTO(lesson)),
@@ -179,5 +188,57 @@ export class SubjectController {
         })),
       };
     });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/teacher/{:id}')
+  public async getSubjectsByTeacherId(@Param('id') id: string) {
+    const data = await this.subjectService.getSubjectsByTeacherId(Number(id));
+
+    return data.map((subject) => {
+      return {
+        ...this.toSubjectDTO(subject),
+        enrolledStudents: subject._count.StudentSubject,
+        lessonsAmount: subject._count.Lesson,
+      };
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/{:id}/student-quiz-analytics')
+  public async getStudentSubjectAnalysis(
+    @Param('id') id: string,
+    @Body() body: StudentQuizDTO,
+  ) {
+    const { studentId } = body;
+
+    const data = await this.quizService.getStudentSubjectQuizAnalytics(
+      Number(studentId),
+      Number(id),
+    );
+
+    if (!data) {
+      return 'No data found for this student in this subject';
+    }
+
+    return data;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/{:id}/students-quiz-analytics')
+  public async getStudentsSubjectAnalysis(@Param('id') id: string) {
+    const data = await this.quizService.getStudentsQuizAnalytics(Number(id));
+
+    if (!data) {
+      return 'No data found for this student in this subject';
+    }
+
+    return data;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/{:id}/recent-activity')
+  public async getRecentActivity(@Param('id') id: string) {
+    return await this.quizService.getRecentStudentsResults(Number(id));
   }
 }
