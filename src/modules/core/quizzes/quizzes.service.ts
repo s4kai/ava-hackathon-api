@@ -15,26 +15,10 @@ export class QuizService {
   ) {}
 
   public async getQuizzesBySubject(subjectId: number) {
-    // Logic to fetch quizzes by subject`
-    const lessons = await this.prismaService.lesson.findMany({
-      where: {
-        subjectId,
-      },
-      select: { id: true },
-    });
-
-    if (!lessons) {
-      throw new BadRequestException(
-        `Lessons with this Subject ID ${subjectId} does not exists`,
-      );
-    }
-
     return await this.prismaService.lessonQuiz.findMany({
       where: {
         lesson: {
-          id: {
-            in: lessons.map((lesson) => lesson.id),
-          },
+          subjectId,
         },
       },
     });
@@ -257,22 +241,6 @@ export class QuizService {
       throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
     }
 
-    if (
-      quiz.QuizAnalysis &&
-      quiz.QuizAnalysis.createdAt.getTime() > Date.now() - 1 * 60 * 1000
-    ) {
-      return {
-        quizId: quiz.id,
-        title: quiz.title,
-        totalSubmissions: quiz.StudentQuizResult.length,
-        averageScore: quiz.QuizAnalysis.averageScore,
-        percentageScore: (quiz.QuizAnalysis.averageScore / quiz.maxScore) * 100,
-        highestScore: quiz.QuizAnalysis.highestScore,
-        lowestScore: quiz.QuizAnalysis.lowestScore,
-        averageTimeTaken: quiz.QuizAnalysis.averageTimeTaken,
-      };
-    }
-
     const totalSubmissions = quiz.StudentQuizResult.length;
 
     const totalTimeTaken = quiz.StudentQuizResult.reduce(
@@ -308,31 +276,6 @@ export class QuizService {
         `Unable to calculate percentage score for quiz ID ${quizId}.`,
       );
     }
-
-    await this.prismaService.quizAnalysis.upsert({
-      where: {
-        quizId: quiz.id,
-      },
-
-      update: {
-        totalAttempts: totalSubmissions,
-        averageTimeTaken,
-        averageScore,
-        highestScore,
-        lowestScore,
-      },
-
-      create: {
-        quiz: {
-          connect: { id: quiz.id },
-        },
-        totalAttempts: totalSubmissions,
-        averageTimeTaken,
-        averageScore,
-        highestScore,
-        lowestScore,
-      },
-    });
 
     return {
       quizId: quiz.id,
@@ -398,17 +341,22 @@ export class QuizService {
 
     const student = await this.studentService.getStudentById(studentId);
 
-    const studentAnalytics = await Promise.all(
-      quizzes.map(async (quiz) => {
-        const result = await this.getQuizResult(quiz.id, studentId);
+    const studentAnalytics: any = [];
 
-        return {
-          quizId: quiz.id,
-          title: quiz.title,
-          score: result.score,
-          timeTaken: result.timeTaken,
-          feedback: JSON.parse(result.feedback || '[]'),
-        };
+    await Promise.all(
+      quizzes.map(async (quiz) => {
+        try {
+          const result = await this.getQuizResult(quiz.id, studentId);
+          studentAnalytics.push({
+            quizId: quiz.id,
+            title: quiz.title,
+            score: result.score,
+            timeTaken: result.timeTaken,
+            feedback: JSON.parse(result.feedback || '[]'),
+          });
+        } catch (error) {
+          return null;
+        }
       }),
     );
 

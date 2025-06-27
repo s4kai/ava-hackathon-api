@@ -73,7 +73,7 @@ export class SubjectController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('/:id')
+  @Get('/:id')
   public async getSubjectById(@Param('id') id: string, @Body() body: any) {
     const result = await this.subjectService.getSubjectById(
       Number(id),
