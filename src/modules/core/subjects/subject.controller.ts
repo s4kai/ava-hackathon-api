@@ -49,6 +49,7 @@ export class SubjectController {
       title: lesson.title,
       date: lesson.date,
       type: lesson.type,
+      description: lesson.description || '',
       subjectId: lesson.subjectId,
       content: lesson.content,
     };
