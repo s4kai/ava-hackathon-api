@@ -1,7 +1,7 @@
 import { PrismaService } from '@modules/shared';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { UpdateLessonDTO, CreateLessonDTO } from './dto';
+import { CreateLessonDTO, UpdateLessonDTO } from './dto';
 
 @Injectable()
 export class LessonService {
@@ -66,6 +66,16 @@ export class LessonService {
       );
     }
 
-    return lessons;
+    return lessons.map((lesson) => {
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        date: lesson.date,
+        description: lesson.description || undefined,
+        type: lesson.type,
+        subjectId: lesson.subjectId,
+        content: lesson.content,
+      };
+    });
   }
 }

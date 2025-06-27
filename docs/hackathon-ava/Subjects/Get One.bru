@@ -6,10 +6,16 @@ meta {
 
 get {
   url: {{base_url}}/subjects/:id
-  body: none
+  body: json
   auth: inherit
 }
 
 params:path {
   id: 1
+}
+
+body:json {
+  {
+    "studentId":"2"
+  }
 }

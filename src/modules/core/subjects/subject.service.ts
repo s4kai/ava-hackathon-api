@@ -31,11 +31,24 @@ export class SubjectService {
     });
   }
 
-  public async getSubjectById(id: number) {
+  public async getSubjectById(id: number, studentId?: number) {
     return this.prismaService.subject.findUnique({
       where: { id },
       include: {
-        Lesson: true,
+        Lesson: {
+          include: {
+            StudentCustomMaterial: {
+              where: {
+                studentId: {
+                  equals: studentId ? studentId : -1,
+                },
+              },
+            },
+            lessonQuiz: {
+              include: { _count: true },
+            },
+          },
+        },
         TeacherSubject: { include: { teacher: true } },
         StudentSubject: { include: { student: true } },
       },
@@ -74,7 +87,26 @@ export class SubjectService {
   public async getSubjectsByStudentId(id: number) {
     return this.prismaService.subject.findMany({
       where: { StudentSubject: { some: { studentId: id } } },
-      include: { Lesson: true, TeacherSubject: { include: { teacher: true } } },
+      include: {
+        Lesson: {
+          include: {
+            StudentCustomMaterial: {
+              where: { studentId: id },
+            },
+
+            lessonQuiz: {
+              where: {
+                StudentQuizResult: {
+                  every: { studentId: id },
+                },
+              },
+              include: { _count: true },
+            },
+            subject: true,
+          },
+        },
+        TeacherSubject: { include: { teacher: true } },
+      },
     });
   }
 

@@ -12,6 +12,7 @@ export class LessonController {
       id: lesson.id,
       title: lesson.title,
       date: lesson.date,
+      description: lesson.description || undefined,
       type: lesson.type,
       subjectId: lesson.subjectId,
       content: lesson.content,

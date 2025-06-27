@@ -82,14 +82,15 @@ model StudentSubject {
 }
 
 model Lesson {
-  id        Int      @id @default(autoincrement())
-  title     String
-  date      DateTime @default(now())
-  type      String
-  subjectId Int
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime @default(now())
+  type        String
+  subjectId   Int
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   subject               Subject                 @relation("SubjectLessons", fields: [subjectId], references: [id])
   lessonPlan            LessonPlan?             @relation("LessonToPlan")

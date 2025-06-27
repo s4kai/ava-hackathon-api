@@ -72,16 +72,30 @@ export class SubjectController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get('/:id')
-  public async getSubjectById(@Param('id') id: string) {
-    const result = await this.subjectService.getSubjectById(Number(id));
+  @Post('/:id')
+  public async getSubjectById(@Param('id') id: string, @Body() body: any) {
+    const result = await this.subjectService.getSubjectById(
+      Number(id),
+      Number(body?.studentId),
+    );
 
     if (!result) {
       return null;
     }
     return {
       ...this.toSubjectDTO(result),
-      lessons: result.Lesson.map((lesson) => this.toLessonDTO(lesson)),
+      lessons: result.Lesson.map((lesson) => {
+        return {
+          ...this.toLessonDTO(lesson),
+          quiz: {
+            id: lesson.lessonQuiz?.id,
+            name: lesson.lessonQuiz?.title,
+            description: lesson.lessonQuiz?.description,
+            wasTaken: (lesson.lessonQuiz?._count?.StudentQuizResult || 0) > 0,
+          },
+          customMaterials: lesson.StudentCustomMaterial,
+        };
+      }),
       teachers: result.TeacherSubject.map((teacherSubject) => ({
         id: teacherSubject.teacher.id,
         name: teacherSubject.teacher.name,
@@ -181,11 +195,6 @@ export class SubjectController {
       return {
         ...this.toSubjectDTO(subject),
         lessons: subject.Lesson.map((lesson) => this.toLessonDTO(lesson)),
-        teachers: subject.TeacherSubject.map((teacherSubject) => ({
-          id: teacherSubject.teacher.id,
-          name: teacherSubject.teacher.name,
-          email: teacherSubject.teacher.email,
-        })),
       };
     });
   }
