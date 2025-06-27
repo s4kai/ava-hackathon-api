@@ -88,23 +88,7 @@ export class SubjectService {
     return this.prismaService.subject.findMany({
       where: { StudentSubject: { some: { studentId: id } } },
       include: {
-        Lesson: {
-          include: {
-            StudentCustomMaterial: {
-              where: { studentId: id },
-            },
-
-            lessonQuiz: {
-              where: {
-                StudentQuizResult: {
-                  every: { studentId: id },
-                },
-              },
-              include: { _count: true },
-            },
-            subject: true,
-          },
-        },
+        Lesson: true,
         TeacherSubject: { include: { teacher: true } },
       },
     });

@@ -195,6 +195,11 @@ export class SubjectController {
       return {
         ...this.toSubjectDTO(subject),
         lessons: subject.Lesson.map((lesson) => this.toLessonDTO(lesson)),
+        teachers: subject.TeacherSubject.map((teacherSubject) => ({
+          id: teacherSubject.teacher.id,
+          name: teacherSubject.teacher.name,
+          email: teacherSubject.teacher.email,
+        })),
       };
     });
   }
