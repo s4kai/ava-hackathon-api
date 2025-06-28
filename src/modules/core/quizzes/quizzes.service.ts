@@ -165,13 +165,26 @@ export class QuizService {
 
     const aiFeedback = await this.generateFeedback(feedback, studentResult.id);
 
-    await this.customMaterialService.createCustomMaterial(
-      aiFeedback,
-      studentId,
-      quizId,
-    );
+    const customMaterial =
+      await this.customMaterialService.createCustomMaterial(
+        aiFeedback,
+        studentId,
+        quizId,
+      );
 
-    return studentResult;
+    const quizResult = await this.prismaService.studentQuizResult.findFirst({
+      where: {
+        quizId,
+        studentId,
+      },
+    });
+
+    return {
+      quizId,
+      ...quizResult,
+      feedback: aiFeedback,
+      customMaterialId: customMaterial.id,
+    };
   }
 
   public async generateQuestionsIA(lessonId: number) {

@@ -38,7 +38,7 @@ export class CustomMaterialService {
 
     const quiz = await this.quizService.getQuizById(quizId);
 
-    await this.prismaService.studentCustomMaterial.create({
+    return await this.prismaService.studentCustomMaterial.create({
       data: {
         title: title as string,
         content: content as string,
