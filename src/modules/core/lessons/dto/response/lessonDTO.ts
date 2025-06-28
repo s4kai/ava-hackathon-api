@@ -5,5 +5,4 @@ export class LessonDTO {
   description?: string;
   type: string;
   subjectId: number;
-  content: string;
 }

@@ -83,12 +83,11 @@ model StudentSubject {
 
 model Lesson {
   id          Int      @id @default(autoincrement())
-  title       String
+  title       String   @db.Text
   description String?
   date        DateTime @default(now())
   type        String
   subjectId   Int
-  content     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -102,8 +101,8 @@ model Lesson {
 
 model LessonPlan {
   id       Int    @id @default(autoincrement())
-  title    String
-  content  String
+  title    String @db.Text
+  content  String @db.Text
   lessonId Int    @unique
   lesson   Lesson @relation("LessonToPlan", fields: [lessonId], references: [id])
 
@@ -175,7 +174,7 @@ model StudentQuizResult {
   quizId    Int
 
   score              Float
-  feedback           String?
+  feedback           String? @db.Text
   timeTaken          Int
   mostDifficultTopic String?
 

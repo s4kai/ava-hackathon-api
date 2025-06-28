@@ -16,6 +16,9 @@ export class CreateLessonDTO {
   @IsString()
   readonly type: string;
 
+  @IsString()
+  readonly contentTitle: string;
+
   subjectId: number;
 
   @IsNotEmpty()

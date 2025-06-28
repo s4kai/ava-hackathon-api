@@ -51,7 +51,6 @@ export class SubjectController {
       type: lesson.type,
       description: lesson.description || '',
       subjectId: lesson.subjectId,
-      content: lesson.content,
     };
   }
 

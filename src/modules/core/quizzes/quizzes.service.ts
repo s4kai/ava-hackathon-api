@@ -158,6 +158,9 @@ export class QuizService {
   public async generateQuestionsIA(lessonId: number) {
     const lesson = await this.prismaService.lesson.findUnique({
       where: { id: lessonId },
+      include: {
+        lessonPlan: true,
+      },
     });
 
     if (!lesson) {
@@ -166,11 +169,37 @@ export class QuizService {
       );
     }
 
-    const prompt = `Generate quiz questions for the lesson titled "${lesson.title}".
-      The questions should be diverse in type (multiple choice, true/false, etc.) and cover the key concepts of the lesson.
-      Provide at least 5 questions with options and correct answers.`;
+    const prompt = `
+      Você é um professor universitario experiente.
+      
+      Gere questoes para a lição: "${lesson.title}".
+      As questoes devem ser de multipla escolhas e devem cobrir o conteudo da lição, provide pelo menos 5 questoes 
+      com opções e a resposta correta.`;
 
-    const response = await this.integrationIAService.getResponseFromIA(prompt);
+    const context = `
+      O plano da lição é a seguinte: 
+      Titulo: ${lesson.lessonPlan?.title}
+      Conteudo da lição: ${lesson.lessonPlan?.content}
+    `;
+
+    const format = `
+     [
+      {
+        "question": string,
+        "options": string[],
+        "correctAnswer": number,
+        "type": "multiple-choice",
+        "explanation": string
+      },
+    ]
+    `;
+
+    const response = await this.integrationIAService.getResponseWithFormat(
+      prompt,
+      context,
+      format,
+    );
+    
     return response;
   }
 

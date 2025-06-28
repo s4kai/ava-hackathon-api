@@ -7,35 +7,22 @@ import { LessonService } from './lesson.service';
 export class LessonController {
   public constructor(private readonly lessonService: LessonService) {}
 
-  private toLessonDTO(lesson: Lesson): LessonDTO {
-    return {
-      id: lesson.id,
-      title: lesson.title,
-      date: lesson.date,
-      description: lesson.description || undefined,
-      type: lesson.type,
-      subjectId: lesson.subjectId,
-      content: lesson.content,
-    };
-  }
-
   // Listar todas as aulas
   @Get('/')
-  public async getAllLessons(): Promise<LessonDTO[]> {
+  public async getAllLessons() {
     const result = await this.lessonService.getAllLessons({});
-    return result.map((lesson) => this.toLessonDTO(lesson));
+    return result;
   }
 
   // Listar os dados de uma aula pelo ID
   @Get('/:id')
-  public async getLessonById(
-    @Param('id') id: string,
-  ): Promise<LessonDTO | null> {
+  public async getLessonById(@Param('id') id: string) {
     const result = await this.lessonService.getLessonById(Number(id));
     if (!result) {
       return null;
     }
-    return this.toLessonDTO(result);
+
+    return result;
   }
 
   // Atualizar os dados de uma aula

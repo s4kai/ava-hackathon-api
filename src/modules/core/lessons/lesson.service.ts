@@ -14,7 +14,12 @@ export class LessonService {
         date: new Date(createLessonDTO.date),
         type: createLessonDTO.type,
         subjectId: createLessonDTO.subjectId,
-        content: createLessonDTO.content,
+        lessonPlan: {
+          create: {
+            title: createLessonDTO.contentTitle,
+            content: createLessonDTO.content,
+          },
+        },
       },
     });
   }
@@ -74,7 +79,6 @@ export class LessonService {
         description: lesson.description || undefined,
         type: lesson.type,
         subjectId: lesson.subjectId,
-        content: lesson.content,
       };
     });
   }
