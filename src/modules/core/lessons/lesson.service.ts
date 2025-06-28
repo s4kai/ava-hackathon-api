@@ -45,6 +45,9 @@ export class LessonService {
   public async getLessonById(id: number) {
     const lesson = await this.prismaService.lesson.findUnique({
       where: { id },
+      include: {
+        lessonPlan: true,
+      },
     });
 
     if (!lesson) {
