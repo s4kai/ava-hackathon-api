@@ -82,4 +82,27 @@ export class LessonService {
       };
     });
   }
+
+  public async getLessonsWithoutQuiz(subjectId: number) {
+    const lessons = await this.prismaService.lesson.findMany({
+      where: {
+        subjectId,
+        lessonQuiz: null,
+      },
+    });
+
+    if (!lessons || lessons.length === 0) {
+      throw new BadRequestException(
+        `No lessons found without a quiz for Subject ID ${subjectId}`,
+      );
+    }
+
+    return lessons.map((lesson) => ({
+      id: lesson.id,
+      title: lesson.title,
+      date: lesson.date,
+      type: lesson.type,
+      subjectId: lesson.subjectId,
+    }));
+  }
 }
