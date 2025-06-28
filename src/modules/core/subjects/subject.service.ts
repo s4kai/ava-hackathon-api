@@ -39,9 +39,7 @@ export class SubjectService {
           include: {
             StudentCustomMaterial: {
               where: {
-                studentId: {
-                  equals: studentId ? studentId : -1,
-                },
+                student: studentId ? { id: studentId } : undefined,
               },
             },
             lessonQuiz: {

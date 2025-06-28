@@ -13,4 +13,17 @@ export class CustomMaterialController {
   public getAllStudentCustomMaterials(@Param('id') id: string) {
     return this.studentService.getAllStudentCustomMaterials(Number(id));
   }
+
+  @Get('/:id')
+  public async getCustomMaterialById(@Param('id') id: string) {
+    const data = await this.customMaterialService.getCustomMaterialById(
+      Number(id),
+    );
+
+    return {
+      ...data,
+      subject: data?.lesson?.subject.id || undefined,
+      lesson: undefined,
+    };
+  }
 }

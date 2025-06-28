@@ -11,6 +11,19 @@ export class CustomMaterialService {
     private readonly prismaService: PrismaService,
   ) {}
 
+  public async getCustomMaterialById(id: number) {
+    return await this.prismaService.studentCustomMaterial.findUnique({
+      where: { id },
+      include: {
+        lesson: {
+          include: {
+            subject: true,
+          },
+        },
+      },
+    });
+  }
+
   public async createCustomMaterial(
     feedback: string,
     studentId: number,
