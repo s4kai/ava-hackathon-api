@@ -31,7 +31,7 @@ export class CustomMaterialService {
   ) {
     const prompt = `Com base no feedback abaixo gere um material customizado para o aluno,
     com dicas de estudo e os pontos que ele deve focar. Gere um titulo e um conteudo o conteudo deve ser
-    formato markdown.
+    no formato markdown, porem o mesmo nao deve conter elementos do tipo \`\`\` sendo substituido por um elemento <pre></pre>.
     `;
 
     const format = `
