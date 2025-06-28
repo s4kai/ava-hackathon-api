@@ -1,0 +1,15 @@
+meta {
+  name: Create Questions ai
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base_url}}/quizzes/generate-questions/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 7
+}

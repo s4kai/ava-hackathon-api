@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -82,14 +82,14 @@ model StudentSubject {
 }
 
 model Lesson {
-  id        Int      @id @default(autoincrement())
-  title     String
-  date      DateTime @default(now())
-  type      String
-  subjectId Int
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String   @db.Text
+  description String?  @db.Text
+  date        DateTime @default(now())
+  type        String
+  subjectId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   subject               Subject                 @relation("SubjectLessons", fields: [subjectId], references: [id])
   lessonPlan            LessonPlan?             @relation("LessonToPlan")
@@ -101,8 +101,8 @@ model Lesson {
 
 model LessonPlan {
   id       Int    @id @default(autoincrement())
-  title    String
-  content  String
+  title    String @db.Text
+  content  String @db.Text
   lessonId Int    @unique
   lesson   Lesson @relation("LessonToPlan", fields: [lessonId], references: [id])
 
@@ -116,7 +116,10 @@ model LessonQuiz {
   id    Int    @id @default(autoincrement())
   title String
 
-  maxScore Float
+  maxScore  Float
+  timeLimit Int
+
+  description String?  @db.Text
 
   lessonId Int    @unique
   lesson   Lesson @relation("LessonToQuiz", fields: [lessonId], references: [id])
@@ -134,13 +137,13 @@ model LessonQuiz {
 }
 
 model QuizQuestion {
-  id         Int    @id @default(autoincrement())
-  quizId     Int
-  question   String
-  options    String
-  answer     String
-  difficulty String
-  keywords   String
+  id          Int     @id @default(autoincrement())
+  quizId      Int
+  question    String  @db.Text
+  options     String  @db.Text
+  answer      Int    
+  type        String
+  explanation String?  @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -154,7 +157,7 @@ model StudentQuizAnswer {
   id        Int    @id @default(autoincrement())
   studentId Int
   quizId    Int
-  answer    String
+  answer    String @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,7 +174,7 @@ model StudentQuizResult {
   quizId    Int
 
   score              Float
-  feedback           String?
+  feedback           String? @db.Text
   timeTaken          Int
   mostDifficultTopic String?
 
@@ -251,7 +254,7 @@ model StudentCustomMaterial {
   id        Int    @id @default(autoincrement())
   studentId Int
   title     String
-  content   String
+  content   String @db.Text
   lessonId  Int
 
   createdAt DateTime @default(now())

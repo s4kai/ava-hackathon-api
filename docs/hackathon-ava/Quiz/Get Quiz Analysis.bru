@@ -1,0 +1,15 @@
+meta {
+  name: Get Quiz Analysis
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base_url}}/subjects/:id/quiz-analysis
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}

@@ -7,6 +7,7 @@ import { LessonController, LessonService } from './lessons';
 import { QuizController, QuizService } from './quizzes';
 import { StudentsController, StudentsService } from './students';
 import { SubjectController, SubjectService } from './subjects';
+import { TeachersController, TeachersService } from './teachers';
 
 const controllers = [
   StudentsController,
@@ -14,6 +15,7 @@ const controllers = [
   LessonController,
   QuizController,
   CustomMaterialController,
+  TeachersController,
 ];
 
 const providers = [
@@ -22,6 +24,7 @@ const providers = [
   LessonService,
   QuizService,
   CustomMaterialService,
+  TeachersService,
 ];
 
 @Module({

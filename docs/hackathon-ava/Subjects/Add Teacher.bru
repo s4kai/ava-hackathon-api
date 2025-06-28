@@ -1,0 +1,21 @@
+meta {
+  name: Add Teacher
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/subjects/:id/add-teacher
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 2
+}
+
+body:json {
+  {
+    "teacherId": "1" 
+  }
+}

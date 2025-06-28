@@ -1,0 +1,21 @@
+meta {
+  name: Get One
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{base_url}}/subjects/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "studentId":"2"
+  }
+}

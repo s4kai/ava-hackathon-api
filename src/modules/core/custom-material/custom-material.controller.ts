@@ -1,16 +1,29 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { CustomMaterialService } from './custom-material.service';
+import { StudentsService } from '../students';
 
 @Controller('custom-material')
 export class CustomMaterialController {
   public constructor(
     private readonly customMaterialService: CustomMaterialService,
+    private readonly studentService: StudentsService,
   ) {}
 
-  public getCustomMaterialById(id: string) {}
-  public getStudentCustomMaterial(studentId: string) {}
+  @Get('/student/:id')
+  public getAllStudentCustomMaterials(@Param('id') id: string) {
+    return this.studentService.getAllStudentCustomMaterials(Number(id));
+  }
 
-  public generateCustomMaterial(generateCustomMaterialDTO: any) {
-    const { studentId, lessonId } = generateCustomMaterialDTO;
+  @Get('/:id')
+  public async getCustomMaterialById(@Param('id') id: string) {
+    const data = await this.customMaterialService.getCustomMaterialById(
+      Number(id),
+    );
+
+    return {
+      ...data,
+      subject: data?.lesson?.subject.id || undefined,
+      lesson: undefined,
+    };
   }
 }

@@ -1,0 +1,15 @@
+meta {
+  name: Get Lessons
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/subjects/:id/lessons
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}

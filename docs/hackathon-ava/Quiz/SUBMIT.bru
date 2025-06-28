@@ -1,0 +1,28 @@
+meta {
+  name: SUBMIT
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/quizzes/submit
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "quizId": 6,
+    "studentId": 1,
+    "answers": [
+      { "questionId": 41, "answer": 1 },
+      { "questionId": 42, "answer": 1 },
+      { "questionId": 43, "answer": 1 },
+      { "questionId": 44, "answer": 1 },
+      { "questionId": 45, "answer": 1 },
+      { "questionId": 46, "answer": 1 },
+      { "questionId": 47, "answer": 1 },
+      { "questionId": 48, "answer": 1 }
+    ]
+  }
+}
