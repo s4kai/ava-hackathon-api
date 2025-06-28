@@ -16,7 +16,7 @@ export class OpenIAService implements IntegrationIAService {
       messages: [{ role: 'user', content: prompt }],
     });
 
-    this.logger.log(`OpenApi chamada com o seguinte prompt: ${prompt}`);
+    this.logger.debug(`OpenApi chamada com o seguinte prompt: ${prompt}`);
 
     return response.choices[0].message.content || '';
   }

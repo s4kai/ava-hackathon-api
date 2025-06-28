@@ -1,5 +1,10 @@
 import { IntegrationIAService, PrismaService } from '@modules/shared';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { StudentsService } from '../students';
 import { QuizFeedback } from './dto/feedbackDTO';
 import { CreateQuizDTO } from './dto/request/createQuizDTO';
@@ -13,6 +18,8 @@ export class QuizService {
     private readonly integrationIAService: IntegrationIAService,
     private readonly prismaService: PrismaService,
     private readonly studentService: StudentsService,
+
+    @Inject(forwardRef(() => CustomMaterialService))
     private readonly customMaterialService: CustomMaterialService,
   ) {}
 
@@ -83,6 +90,10 @@ export class QuizService {
     const quiz = await this.getQuizById(quizId);
     if (!quiz) {
       throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
+    }
+
+    if (quiz.QuizQuestion.length != answers.length) {
+      throw new BadRequestException(`Question size invalid`);
     }
 
     for (const answer of answers) {

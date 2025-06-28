@@ -34,7 +34,7 @@ export class CustomMaterialService {
       format,
     );
 
-    const { title, content } = JSON.parse(format);
+    const { title, content } = JSON.parse(newMaterial);
 
     const quiz = await this.quizService.getQuizById(quizId);
 

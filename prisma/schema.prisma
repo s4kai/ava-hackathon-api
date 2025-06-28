@@ -157,7 +157,7 @@ model StudentQuizAnswer {
   id        Int    @id @default(autoincrement())
   studentId Int
   quizId    Int
-  answer    String
+  answer    String @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -254,7 +254,7 @@ model StudentCustomMaterial {
   id        Int    @id @default(autoincrement())
   studentId Int
   title     String
-  content   String
+  content   String @db.Text
   lessonId  Int
 
   createdAt DateTime @default(now())
