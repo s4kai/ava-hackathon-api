@@ -84,7 +84,7 @@ model StudentSubject {
 model Lesson {
   id          Int      @id @default(autoincrement())
   title       String   @db.Text
-  description String?
+  description String?  @db.Text
   date        DateTime @default(now())
   type        String
   subjectId   Int
@@ -119,7 +119,7 @@ model LessonQuiz {
   maxScore  Float
   timeLimit Int
 
-  description String?
+  description String?  @db.Text
 
   lessonId Int    @unique
   lesson   Lesson @relation("LessonToQuiz", fields: [lessonId], references: [id])
@@ -139,11 +139,11 @@ model LessonQuiz {
 model QuizQuestion {
   id          Int     @id @default(autoincrement())
   quizId      Int
-  question    String
-  options     String
-  answer      Int
+  question    String  @db.Text
+  options     String  @db.Text
+  answer      Int    
   type        String
-  explanation String?
+  explanation String?  @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
