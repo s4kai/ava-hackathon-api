@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Put } from '@nestjs/common';
-import { Lesson } from '@prisma/client';
-import { LessonDTO, UpdateLessonDTO } from './dto';
+import { UpdateLessonDTO } from './dto';
 import { LessonService } from './lesson.service';
 
 @Controller('lessons')
@@ -29,5 +28,17 @@ export class LessonController {
   @Put('/:id/update')
   async updateLesson(@Param('id') id: string, @Body() lesson: UpdateLessonDTO) {
     return this.lessonService.updateLesson(Number(id), lesson);
+  }
+
+  @Get('/without-quiz/:subjectId')
+  async getLessonsWithoutQuiz(@Param('subjectId') subjectId: string) {
+    const result = await this.lessonService.getLessonsWithoutQuiz(
+      Number(subjectId),
+    );
+    if (!result) {
+      return null;
+    }
+
+    return result;
   }
 }
