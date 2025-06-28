@@ -14,6 +14,7 @@ export class LessonService {
         date: new Date(createLessonDTO.date),
         type: createLessonDTO.type,
         subjectId: createLessonDTO.subjectId,
+        description: createLessonDTO.description,
         lessonPlan: {
           create: {
             title: createLessonDTO.contentTitle,

@@ -4,6 +4,7 @@ import { StudentsService } from '../students';
 import { QuizFeedback } from './dto/feedbackDTO';
 import { CreateQuizDTO } from './dto/request/createQuizDTO';
 import { SubmitQuizDTO } from './dto/request/submitQuizDTO';
+import { CustomMaterialService } from '../custom-material';
 
 @Injectable()
 export class QuizService {
@@ -12,6 +13,7 @@ export class QuizService {
     private readonly integrationIAService: IntegrationIAService,
     private readonly prismaService: PrismaService,
     private readonly studentService: StudentsService,
+    private readonly customMaterialService: CustomMaterialService,
   ) {}
 
   public async getQuizzesBySubject(subjectId: number) {
@@ -150,7 +152,13 @@ export class QuizService {
       },
     });
 
-    this.generateFeedback(feedback, studentResult.id);
+    const aiFeedback = await this.generateFeedback(feedback, studentResult.id);
+
+    await this.customMaterialService.createCustomMaterial(
+      aiFeedback,
+      studentId,
+      quizId,
+    );
 
     return studentResult;
   }
@@ -199,7 +207,7 @@ export class QuizService {
       context,
       format,
     );
-    
+
     return response;
   }
 
@@ -231,13 +239,12 @@ export class QuizService {
     QuizFeedbacks: QuizFeedback[],
     studentResultId: number,
   ) {
-    const prompt = `Generate feedback for the following quiz questions: ${JSON.stringify(
-      QuizFeedbacks,
-    )}. 
-      The feedback should include the question text, options, correct answer, and the student's answer.
-      return the feedback in a structured format suitable for a student to understand their mistakes and
-      learn from them. The feedback should be concise and educational.
-    `;
+    const prompt = `Analise as seguintes perguntas do quiz: ${JSON.stringify(QuizFeedbacks)}. 
+    Gere um feedback para cada pergunta que inclua:
+    - Uma avaliação das maiores dificuldades do aluno em responder,
+    - Palavras-chave importantes para estudos futuros,
+    - O feedback deve ser conciso, claro e educativo, facilitando o aprendizado do aluno.
+    Organize a resposta de forma estruturada, para que o aluno possa identificar seus erros e melhorar.`;
 
     const response = await this.integrationIAService.getResponseFromIA(prompt);
 

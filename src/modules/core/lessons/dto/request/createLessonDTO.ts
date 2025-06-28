@@ -9,6 +9,7 @@ export class CreateLessonDTO {
   @IsString()
   readonly date: string;
 
+  @IsNotEmpty()
   @IsString()
   readonly description: string;
 
