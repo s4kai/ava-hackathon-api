@@ -25,20 +25,14 @@ export class QuizService {
 
   public async getQuizzesBySubject(subjectId: number) {
     return await this.prismaService.lessonQuiz.findMany({
-      where: {
-        lesson: {
-          subjectId,
-        },
-      },
+      where: { lesson: { subjectId } },
     });
   }
 
   public async getQuizById(quizId: number) {
     const quiz = await this.prismaService.lessonQuiz.findUnique({
       where: { id: quizId },
-      include: {
-        QuizQuestion: true,
-      },
+      include: { QuizQuestion: true },
     });
 
     if (!quiz) {
@@ -51,7 +45,6 @@ export class QuizService {
   public async createQuiz(quizDTO: CreateQuizDTO) {
     const { title, lessonId, description, timeLimit, questions } = quizDTO;
 
-    // Validate the lesson exists
     const lesson = await this.prismaService.lesson.findUnique({
       where: { id: Number(lessonId) },
     });
@@ -62,7 +55,6 @@ export class QuizService {
       );
     }
 
-    // Create the quiz
     return await this.prismaService.lessonQuiz.create({
       data: {
         title,
@@ -71,12 +63,12 @@ export class QuizService {
         maxScore: questions.length,
         timeLimit,
         QuizQuestion: {
-          create: questions.map((question) => ({
-            question: question.question,
-            options: JSON.stringify(question.options),
-            answer: question.correctAnswer,
-            type: question.type,
-            explanation: question.explanation,
+          create: questions.map((q) => ({
+            question: q.question,
+            options: JSON.stringify(q.options),
+            answer: q.correctAnswer,
+            type: q.type,
+            explanation: q.explanation,
           })),
         },
       },
@@ -86,35 +78,22 @@ export class QuizService {
   public async processQuizSubmission(submitDto: SubmitQuizDTO) {
     const { quizId, studentId, answers } = submitDto;
 
-    // Validate the quiz exists
     const quiz = await this.getQuizById(quizId);
-    if (!quiz) {
-      throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
-    }
 
-    if (quiz.QuizQuestion.length != answers.length) {
-      throw new BadRequestException(`Question size invalid`);
-    }
-
-    for (const answer of answers) {
-      if (!quiz.QuizQuestion.some((q) => q.id === answer.questionId)) {
-        throw new BadRequestException(
-          `Question with ID ${answer.questionId} does not exist in quiz ${quizId}.`,
-        );
-      }
-    }
-
-    const answer = await this.prismaService.studentQuizAnswer.findFirst({
-      where: {
-        quizId,
-        studentId,
-      },
-    });
-
-    if (answer) {
+    if (quiz.QuizQuestion.length !== answers.length) {
       throw new BadRequestException(
-        `Student with ID ${studentId} has already submitted answers for quiz ${quizId}.`,
+        `Number of answers does not match quiz questions.`,
       );
+    }
+
+    const existingAnswer = await this.prismaService.studentQuizAnswer.findFirst(
+      {
+        where: { quizId, studentId },
+      },
+    );
+
+    if (existingAnswer) {
+      throw new BadRequestException(`Quiz already answered by student.`);
     }
 
     await this.prismaService.studentQuizAnswer.create({
@@ -125,8 +104,6 @@ export class QuizService {
       },
     });
 
-    // Calculate the score
-
     let feedback: QuizFeedback[] = [];
     let score = 0;
 
@@ -134,10 +111,9 @@ export class QuizService {
       const question = quiz.QuizQuestion.find(
         (q) => q.id === response.questionId,
       );
-
       if (!question) {
         throw new BadRequestException(
-          `Question with ID ${response.questionId} not found in quiz ${quizId}.`,
+          `Invalid question ID: ${response.questionId}`,
         );
       }
 
@@ -154,7 +130,7 @@ export class QuizService {
       }
     }
 
-    const studentResult = await this.prismaService.studentQuizResult.create({
+    const result = await this.prismaService.studentQuizResult.create({
       data: {
         quizId,
         studentId,
@@ -163,7 +139,7 @@ export class QuizService {
       },
     });
 
-    const aiFeedback = await this.generateFeedback(feedback, studentResult.id);
+    const aiFeedback = await this.generateFeedback(feedback, result.id);
 
     const customMaterial =
       await this.customMaterialService.createCustomMaterial(
@@ -172,16 +148,8 @@ export class QuizService {
         quizId,
       );
 
-    const quizResult = await this.prismaService.studentQuizResult.findFirst({
-      where: {
-        quizId,
-        studentId,
-      },
-    });
-
     return {
-      quizId,
-      ...quizResult,
+      ...result,
       feedback: aiFeedback,
       customMaterialId: customMaterial.id,
     };
@@ -190,9 +158,7 @@ export class QuizService {
   public async generateQuestionsIA(lessonId: number) {
     const lesson = await this.prismaService.lesson.findUnique({
       where: { id: lessonId },
-      include: {
-        lessonPlan: true,
-      },
+      include: { lessonPlan: true },
     });
 
     if (!lesson) {
@@ -202,81 +168,68 @@ export class QuizService {
     }
 
     const prompt = `
-      Você é um professor universitario experiente.
-      
-      Gere questoes para a lição: "${lesson.title}".
-      As questoes devem ser de multipla escolhas e devem cobrir o conteudo da lição, provide pelo menos 5 questoes 
-      com opções e a resposta correta.`;
+      Você é um professor universitário experiente.
+      Gere 5 perguntas de múltipla escolha sobre: "${lesson.title}"
+    `;
 
     const context = `
-      O plano da lição é a seguinte: 
-      Titulo: ${lesson.lessonPlan?.title}
-      Conteudo da lição: ${lesson.lessonPlan?.content}
+      Plano da Lição:
+      Título: ${lesson.lessonPlan?.title}
+      Conteúdo: ${lesson.lessonPlan?.content}
     `;
 
     const format = `
-     [
-      {
-        "question": string,
-        "options": string[],
-        "correctAnswer": number,
-        "type": "multiple-choice",
-        "explanation": string
-      },
-    ]
+      [
+        {
+          "question": string,
+          "options": string[],
+          "correctAnswer": number,
+          "type": "multiple-choice",
+          "explanation": string
+        }
+      ]
     `;
 
-    const response = await this.integrationIAService.getResponseWithFormat(
+    return await this.integrationIAService.getResponseWithFormat(
       prompt,
       context,
       format,
     );
-
-    return response;
   }
 
   public async getQuizResult(quizId: number, studentId: number) {
-    const quizResult = await this.prismaService.studentQuizResult.findFirst({
-      where: {
-        quizId,
-        studentId,
-      },
+    const result = await this.prismaService.studentQuizResult.findFirst({
+      where: { quizId, studentId },
       include: {
         quiz: {
-          include: {
-            QuizQuestion: true,
-          },
+          include: { QuizQuestion: true },
         },
       },
     });
 
-    if (!quizResult) {
+    if (!result) {
       throw new BadRequestException(
-        `No results found for quiz ID ${quizId} and student ID ${studentId}.`,
+        `No result found for quiz ${quizId} and student ${studentId}`,
       );
     }
 
-    return quizResult;
+    return result;
   }
 
   private async generateFeedback(
-    QuizFeedbacks: QuizFeedback[],
-    studentResultId: number,
+    quizFeedbacks: QuizFeedback[],
+    resultId: number,
   ) {
-    const prompt = `Analise as seguintes perguntas do quiz: ${JSON.stringify(QuizFeedbacks)}. 
-    Gere um feedback para cada pergunta que inclua:
-    - Uma avaliação das maiores dificuldades do aluno em responder,
-    - Palavras-chave importantes para estudos futuros,
-    - O feedback deve ser conciso, claro e educativo, facilitando o aprendizado do aluno.
-    Organize a resposta de forma estruturada, para que o aluno possa identificar seus erros e melhorar.`;
+    const prompt = `
+      Analise essas perguntas: ${JSON.stringify(quizFeedbacks)}.
+      Gere feedback educativo para o aluno.
+    `;
 
     const response = await this.integrationIAService.getResponseFromIA(prompt);
 
     await this.prismaService.studentQuizResult.update({
-      where: { id: studentResultId },
-      data: {
-        feedback: JSON.stringify(response),
-      },
+      where: { id: resultId },
+      data: { feedback: JSON.stringify(response) },
     });
 
     return response;
@@ -285,106 +238,74 @@ export class QuizService {
   public async getQuizAnalytics(quizId: number) {
     const quiz = await this.prismaService.lessonQuiz.findUnique({
       where: { id: quizId },
-      include: {
-        QuizQuestion: true,
-        StudentQuizResult: {
-          include: {
-            student: true,
-          },
-        },
-
-        QuizAnalysis: true,
-      },
+      include: { StudentQuizResult: true },
     });
 
     if (!quiz) {
       throw new BadRequestException(`Quiz with ID ${quizId} does not exist.`);
     }
 
-    const totalSubmissions = quiz.StudentQuizResult.length;
+    const results = quiz.StudentQuizResult;
 
-    const totalTimeTaken = quiz.StudentQuizResult.reduce(
-      (sum, result) => sum + result.timeTaken,
-      0,
-    );
-
-    const totalScore = quiz.StudentQuizResult.reduce(
-      (sum, result) => sum + result.score,
-      0,
-    );
-
-    const averageTimeTaken =
-      totalSubmissions > 0 ? totalTimeTaken / totalSubmissions : 0;
-
-    const averageScore =
-      totalSubmissions > 0 ? totalScore / totalSubmissions : 0;
-
-    const percentageScore = (averageScore / quiz.maxScore) * 100;
-
-    const highestScore =
-      totalSubmissions > 0
-        ? Math.max(...quiz.StudentQuizResult.map((result) => result.score))
-        : 0;
-
-    const lowestScore =
-      totalSubmissions > 0
-        ? Math.min(...quiz.StudentQuizResult.map((result) => result.score))
-        : 0;
-
-    if (isNaN(percentageScore)) {
-      throw new BadRequestException(
-        `Unable to calculate percentage score for quiz ID ${quizId}.`,
-      );
+    if (!results.length) {
+      return {
+        quizId: quiz.id,
+        title: quiz.title,
+        totalSubmissions: 0,
+        averageScore: 0,
+        percentageScore: 0,
+        highestScore: 0,
+        lowestScore: 0,
+        averageTimeTaken: 0,
+      };
     }
+
+    const scores = results.map((r) => r.score);
+    const totalScore = scores.reduce((a, b) => a + b, 0);
+    const totalTimeTaken = results.reduce((a, b) => a + b.timeTaken, 0);
 
     return {
       quizId: quiz.id,
       title: quiz.title,
-      totalSubmissions,
-      averageScore,
-      percentageScore,
-      highestScore,
-      lowestScore,
-      averageTimeTaken,
+      totalSubmissions: results.length,
+      averageScore: totalScore / results.length,
+      percentageScore:
+        quiz.maxScore > 0
+          ? (totalScore / (results.length * quiz.maxScore)) * 100
+          : 0,
+      highestScore: Math.max(...scores),
+      lowestScore: Math.min(...scores),
+      averageTimeTaken: totalTimeTaken / results.length,
     };
   }
 
   public async getQuizAnalyticsBySubject(subjectId: number) {
     const quizzes = await this.getQuizzesBySubject(subjectId);
 
-    if (!quizzes || quizzes.length === 0) {
-      throw new BadRequestException(
-        `No quizzes found for subject ID ${subjectId}.`,
-      );
+    if (!quizzes.length) {
+      throw new BadRequestException(`No quizzes for subject ID ${subjectId}.`);
     }
 
     const analytics = await Promise.all(
-      quizzes.map((quiz) => this.getQuizAnalytics(quiz.id)),
+      quizzes.map((q) => this.getQuizAnalytics(q.id)),
     );
 
-    const subjectAnalytics = {
+    return {
       subjectId,
-      quizzes: analytics,
       totalQuizzes: analytics.length,
-      averageScore:
-        analytics.reduce((sum, quiz) => sum + quiz.averageScore, 0) /
-        analytics.length,
+      averageScore: this.average(analytics.map((a) => a.averageScore)),
+      averagePercentageScore: this.average(
+        analytics.map((a) => a.percentageScore),
+      ),
       totalSubmissions: analytics.reduce(
-        (sum, quiz) => sum + quiz.totalSubmissions,
+        (sum, a) => sum + a.totalSubmissions,
         0,
       ),
-      averagePercentageScore:
-        analytics.reduce((sum, quiz) => sum + quiz.percentageScore, 0) /
-        analytics.length,
-
-      avgTimeTaken:
-        analytics.reduce((sum, quiz) => sum + quiz.averageTimeTaken, 0) /
-        analytics.length,
-      highestScore: Math.max(...analytics.map((quiz) => quiz.highestScore)),
-      lowestScore: Math.min(...analytics.map((quiz) => quiz.lowestScore)),
+      avgTimeTaken: this.average(analytics.map((a) => a.averageTimeTaken)),
+      highestScore: Math.max(...analytics.map((a) => a.highestScore)),
+      lowestScore: Math.min(...analytics.map((a) => a.lowestScore)),
+      quizzes: analytics,
     };
-
-    return subjectAnalytics;
   }
 
   public async getStudentSubjectQuizAnalytics(
@@ -393,7 +314,7 @@ export class QuizService {
   ) {
     const quizzes = await this.getQuizzesBySubject(subjectId);
 
-    if (!quizzes || quizzes.length === 0) {
+    if (!quizzes.length) {
       throw new BadRequestException(
         `No quizzes found for subject ID ${subjectId}.`,
       );
@@ -401,91 +322,68 @@ export class QuizService {
 
     const student = await this.studentService.getStudentById(studentId);
 
-    const studentAnalytics: any = [];
+    const quizIdToQuizMap = new Map(quizzes.map((q) => [q.id, q]));
+    const quizResults = await this.prismaService.studentQuizResult.findMany({
+      where: {
+        studentId,
+        quizId: { in: quizzes.map((q) => q.id) },
+      },
+      select: {
+        quizId: true,
+        score: true,
+        timeTaken: true,
+        feedback: true,
+      },
+    });
 
-    await Promise.all(
-      quizzes.map(async (quiz) => {
-        try {
-          const result = await this.getQuizResult(quiz.id, studentId);
-          studentAnalytics.push({
-            quizId: quiz.id,
-            title: quiz.title,
-            score: result.score,
-            timeTaken: result.timeTaken,
-            feedback: JSON.parse(result.feedback || '[]'),
-          });
-        } catch (error) {
-          return null;
-        }
-      }),
-    );
+    if (!quizResults.length) {
+      return {
+        studentId,
+        student,
+        totalQuizzes: 0,
+        averageScore: 0,
+        averageTimeTaken: 0,
+        percentageScore: 0,
+        totalScore: 0,
+        totalTimeTaken: 0,
+      };
+    }
 
-    const totalQuizzes = studentAnalytics.length;
-
-    const totalScore = studentAnalytics.reduce(
-      (sum, quiz) => sum + quiz.score,
+    const totalScore = quizResults.reduce((sum, r) => sum + r.score, 0);
+    const totalTimeTaken = quizResults.reduce((sum, r) => sum + r.timeTaken, 0);
+    const totalMaxScore = quizResults.reduce(
+      (sum, r) => sum + (quizIdToQuizMap.get(r.quizId)?.maxScore || 0),
       0,
     );
-
-    const averageScore = totalQuizzes > 0 ? totalScore / totalQuizzes : 0;
-
-    const totalTimeTaken = studentAnalytics.reduce(
-      (sum, quiz) => sum + quiz.timeTaken,
-      0,
-    );
-
-    const averageTimeTaken =
-      totalQuizzes > 0 ? totalTimeTaken / totalQuizzes : 0;
-
-    const highestScore =
-      totalQuizzes > 0
-        ? Math.max(...studentAnalytics.map((quiz) => quiz.score))
-        : 0;
-
-    const lowestScore =
-      totalQuizzes > 0
-        ? Math.min(...studentAnalytics.map((quiz) => quiz.score))
-        : 0;
-
-    const percentageScore =
-      quizzes.reduce((sum, quiz) => sum + quiz.maxScore, 0) > 0
-        ? (totalScore / quizzes.reduce((sum, quiz) => sum + quiz.maxScore, 0)) *
-          100
-        : 0;
 
     return {
       studentId,
       student,
-      totalQuizzes,
-      averageScore,
-      averageTimeTaken,
-      percentageScore,
+      totalQuizzes: quizResults.length,
+      averageScore: totalScore / quizResults.length,
+      averageTimeTaken: totalTimeTaken / quizResults.length,
+      percentageScore:
+        totalMaxScore > 0 ? (totalScore / totalMaxScore) * 100 : 0,
       totalScore,
       totalTimeTaken,
     };
   }
 
   public async getStudentsQuizAnalytics(subjectId: number) {
-    const sudents = await this.studentService.getAllStudents({
+    const students = await this.studentService.getAllStudents({
       where: {
-        StudentSubject: {
-          some: {
-            subjectId,
-          },
-        },
+        StudentSubject: { some: { subjectId } },
       },
     });
 
-    if (!sudents || sudents.length === 0) {
+    if (!students.length) {
       throw new BadRequestException(
         `No students found for subject ID ${subjectId}.`,
       );
     }
 
     const analytics = await Promise.all(
-      sudents.map((student) =>
-        this.getStudentSubjectQuizAnalytics(student.id, subjectId),
-      ),
+      students.map((s) => this.getStudentSubjectQuizAnalytics(s.id, subjectId)),
     );
 
     return {
@@ -494,41 +392,37 @@ export class QuizService {
     };
   }
 
-  public async getRecentStudentsResults(subjectId: number, limit: number = 10) {
+  public async getRecentStudentsResults(subjectId: number, limit = 10) {
     const quizzes = await this.getQuizzesBySubject(subjectId);
-
-    if (!quizzes || quizzes.length === 0) {
-      throw new BadRequestException(
-        `No quizzes found for subject ID ${subjectId}.`,
-      );
+    if (!quizzes.length) {
+      throw new BadRequestException(`No quizzes for subject ID ${subjectId}.`);
     }
 
     const results = await this.prismaService.studentQuizResult.findMany({
       where: {
-        quizId: {
-          in: quizzes.map((quiz) => quiz.id),
-        },
+        quizId: { in: quizzes.map((q) => q.id) },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-
+      orderBy: { createdAt: 'desc' },
       take: limit,
-      include: {
-        student: true,
-        quiz: true,
-      },
+      include: { student: true, quiz: true },
     });
 
-    return results.map((result) => ({
-      studentId: result.student.id,
-      studentName: result.student.name,
-      quizId: result.quiz.id,
-      quizTitle: result.quiz.title,
-      score: result.score,
-      percentageScore: (result.score / result.quiz.maxScore) * 100,
-      timeTaken: result.timeTaken,
-      createdAt: result.createdAt,
+    return results.map((r) => ({
+      studentId: r.student.id,
+      studentName: r.student.name,
+      quizId: r.quiz.id,
+      quizTitle: r.quiz.title,
+      score: r.score,
+      percentageScore:
+        r.quiz.maxScore > 0 ? (r.score / r.quiz.maxScore) * 100 : 0,
+      timeTaken: r.timeTaken,
+      createdAt: r.createdAt,
     }));
+  }
+
+  private average(values: number[]) {
+    return values.length
+      ? values.reduce((a, b) => a + b, 0) / values.length
+      : 0;
   }
 }
