@@ -85,6 +85,14 @@ export class SubjectController {
     return {
       ...this.toSubjectDTO(result),
       lessons: result.Lesson.map((lesson) => {
+        const wasTaken =
+          (lesson.lessonQuiz?._count?.StudentQuizResult || 0) > 0;
+
+        const percentage = wasTaken
+          ? ((lesson.lessonQuiz?.StudentQuizResult[0].score || 0) * 100) /
+            (lesson.lessonQuiz?.maxScore || 1)
+          : 0;
+
         return {
           ...this.toLessonDTO(lesson),
           quiz: {
@@ -92,6 +100,7 @@ export class SubjectController {
             name: lesson.lessonQuiz?.title,
             description: lesson.lessonQuiz?.description,
             wasTaken: (lesson.lessonQuiz?._count?.StudentQuizResult || 0) > 0,
+            percentage: percentage,
           },
           customMaterials: lesson.StudentCustomMaterial,
         };

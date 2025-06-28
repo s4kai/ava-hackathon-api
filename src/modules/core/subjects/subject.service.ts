@@ -43,7 +43,7 @@ export class SubjectService {
               },
             },
             lessonQuiz: {
-              include: { _count: true },
+              include: { _count: true, StudentQuizResult: true },
             },
           },
         },
